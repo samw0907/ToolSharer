@@ -1,0 +1,17 @@
+# Python venv
+backend/.venv/
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Pytest cache
+.pytest_cache/
+
+# Migrations/DB (we’ll add Alembic later)
+backend/alembic/versions/*.pyc
