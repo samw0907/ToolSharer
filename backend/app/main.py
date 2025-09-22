@@ -1,5 +1,13 @@
+# app/main.py
 from fastapi import FastAPI
-app = FastAPI(title="toolsharer-backend")
+from datetime import datetime, timezone
+
+app = FastAPI()
+
 @app.get("/healthz")
-def health() -> dict:
-    return {"status": "ok"}
+def health():
+    return {
+        "ok": True,
+        "service": "toolsharer-local",
+        "time": datetime.now(timezone.utc).isoformat()
+    }
