@@ -6,9 +6,13 @@
   },
   "scripts": {
     "build": "tsc",
+    "deploy": "npx cdk deploy --require-approval never",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "bootstrap": "npx cdk bootstrap",
+    "outputs": "powershell -NoProfile -Command \"aws cloudformation describe-stacks --stack-name InfraStack --query 'Stacks[0].Outputs' --output table\"",
+    "cdn:invalidate": "powershell -NoProfile -Command ./invalidate.ps1 -Path '/*'"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

@@ -5,6 +5,7 @@ import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
+import * as logs from 'aws-cdk-lib/aws-logs';
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -32,7 +33,7 @@ export class InfraStack extends cdk.Stack {
     // 2) CloudFront distribution (use S3BucketOrigin with OAC + SPA routing)
     const distribution = new cloudfront.Distribution(this, 'SiteCdn', {
       defaultBehavior: {
-        // FIX: Use the factory method (not "new") to avoid the TS abstract error
+        // factory method avoids abstract class error
         origin: origins.S3BucketOrigin.withOriginAccessControl(siteBucket),
       },
       defaultRootObject: 'index.html',
@@ -52,11 +53,12 @@ export class InfraStack extends cdk.Stack {
       ],
     });
 
-    // 3) Tiny Lambda for /healthz
+    // 3) Tiny Lambda for /healthz (with log retention)
     const healthFn = new lambda.Function(this, 'HealthFn', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda/health'),
+      logRetention: logs.RetentionDays.TWO_WEEKS, // keep logs tidy
     });
 
     // 4) API Gateway in front of Lambda
@@ -70,5 +72,22 @@ export class InfraStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'ApiUrl', { value: api.url });
     new cdk.CfnOutput(this, 'CdnDomain', { value: `https://${distribution.distributionDomainName}` });
     new cdk.CfnOutput(this, 'BucketName', { value: siteBucket.bucketName });
+
+    // Lambda that returns presigned S3 PUT URLs
+const uploadFn = new lambda.Function(this, 'UploadFn', {
+  runtime: lambda.Runtime.PYTHON_3_12,
+  handler: 'index.handler',
+  code: lambda.Code.fromAsset('lambda/upload_py'),
+  environment: {
+    BUCKET: siteBucket.bucketName,
+  },
+});
+
+    // Allow Lambda to generate PUT URLs for this bucket
+    siteBucket.grantPut(uploadFn);
+
+    // API route: GET /upload-url
+    const upload = api.root.addResource('upload-url');
+    upload.addMethod('GET', new apigw.LambdaIntegration(uploadFn));
   }
 }
