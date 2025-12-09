@@ -1,0 +1,33 @@
+# Node / frontend
+node_modules/
+dist/
+build/
+*.log
+.vite/
+
+# Python / backend
+.venv/
+env/
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.mypy_cache/
+.pytest_cache/
+.tox/
+.coverage
+htmlcov/
+
+# VS Code
+.vscode/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+*.env
+.env.*
+*.pem
+*.key
