@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # Database
-    DATABASE_URL: str = "postgresql+psycopg://user:password@localhost:5432/toolsharer"
+    DATABASE_URL: str = "sqlite:///./toolsharer.db"
+
 
     # AWS / Cognito placeholders (to fill later)
     AWS_REGION: str = "eu-north-1"

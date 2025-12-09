@@ -6,10 +6,18 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
+DATABASE_URL = settings.DATABASE_URL
+
+# SQLite needs special connect_args; others don't.
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
 engine = create_engine(
-    settings.DATABASE_URL,
+    DATABASE_URL,
     future=True,
     echo=settings.DEBUG,
+    connect_args=connect_args,
 )
 
 SessionLocal = sessionmaker(
@@ -22,7 +30,7 @@ SessionLocal = sessionmaker(
 def get_db():
     """
     FastAPI dependency that yields a SQLAlchemy session.
-    Ensures session is closed after the request.
+    Ensures the session is closed after the request.
     """
     db = SessionLocal()
     try:
