@@ -1,5 +1,7 @@
+// src/pages/ToolsPage.tsx
 import { useEffect, useState } from "react";
 import { apiGet } from "../lib/api";
+import CreateToolForm from "../components/CreateToolForm";
 
 interface Tool {
   id: number;
@@ -13,28 +15,60 @@ interface Tool {
 export default function ToolsPage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  function loadTools() {
+    setLoading(true);
+    apiGet<Tool[]>("/tools")
+      .then((data) => {
+        setTools(data);
+        setError(null);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+        setError("Failed to load tools.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
 
   useEffect(() => {
-    apiGet<Tool[]>("/tools")
-      .then((data) => setTools(data))
-      .finally(() => setLoading(false));
+    loadTools();
   }, []);
 
-  if (loading) return <p>Loading tools...</p>;
+  function handleToolCreated(tool: Tool) {
+    // append newly created tool to the list
+    setTools((prev) => [...prev, tool]);
+  }
 
   return (
     <div style={{ padding: "2rem" }}>
       <h1>Available Tools</h1>
-      {tools.length === 0 && <p>No tools found.</p>}
-      <ul>
-        {tools.map((t) => (
-          <li key={t.id}>
-            <strong>{t.name}</strong> — {t.description}  
-            <br />
-            <em>{t.location}</em>
-          </li>
-        ))}
-      </ul>
+
+      <CreateToolForm onCreated={handleToolCreated} />
+
+      {loading && <p>Loading tools...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {!loading && !error && tools.length === 0 && <p>No tools found.</p>}
+
+      {!loading && !error && tools.length > 0 && (
+        <ul>
+          {tools.map((t) => (
+            <li key={t.id} style={{ marginBottom: "1rem" }}>
+              <strong>{t.name}</strong> — {t.description}
+              <br />
+              <span>{t.location}</span>
+              <br />
+              <small>
+                Owner ID: {t.owner_id} |{" "}
+                {t.is_available ? "Available" : "Not available"}
+              </small>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
