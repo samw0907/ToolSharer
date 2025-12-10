@@ -1,7 +1,7 @@
 # app/api/routes.py
 from fastapi import APIRouter
 
-from app.api import users
+from app.api import users, tools
 
 router = APIRouter()
 
@@ -13,3 +13,6 @@ async def ping():
 
 # Users
 router.include_router(users.router)
+
+# Tools
+router.include_router(tools.router)
