@@ -8,10 +8,7 @@ from app.core.config import get_settings
 from app.models.base import Base
 
 # 🚨 IMPORTANT: import model modules so they register with Base.metadata
-from app.models import user, tool  # noqa: F401  (we just need the side-effects)
-# Alternatively:
-# from app.models.user import User  # noqa: F401
-# from app.models.tool import Tool  # noqa: F401
+from app.models import user, tool, borrow_request
 
 # This is the Alembic Config object
 config = context.config

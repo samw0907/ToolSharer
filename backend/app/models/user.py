@@ -13,3 +13,6 @@ class User(Base):
     
     # A user can own many tools
     tools = relationship("Tool", back_populates="owner")
+
+    # A user can make many borrow requests
+    borrow_requests = relationship("BorrowRequest", back_populates="borrower")

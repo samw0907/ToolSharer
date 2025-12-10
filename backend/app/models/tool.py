@@ -17,3 +17,6 @@ class Tool(Base):
     is_available = Column(Boolean, nullable=False, default=True)
 
     owner = relationship("User", back_populates="tools")
+
+    # A tool can have many borrow requests
+    borrow_requests = relationship("BorrowRequest", back_populates="tool")
