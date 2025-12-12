@@ -23,8 +23,6 @@ interface BorrowRequest {
   updated_at: string;
 }
 
-// TEMP: “logged in” borrower id for testing.
-// Make sure a user with this ID exists in the backend (via Swagger).
 const TEST_BORROWER_ID = 2;
 
 export default function ToolsPage() {
@@ -32,12 +30,11 @@ export default function ToolsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // track which tool's "request" form is open
+
   const [activeRequestToolId, setActiveRequestToolId] = useState<number | null>(
     null
   );
 
-  // just to show that something happened
   const [lastRequest, setLastRequest] = useState<BorrowRequest | null>(null);
 
   function loadTools() {
