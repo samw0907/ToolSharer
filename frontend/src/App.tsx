@@ -2,8 +2,9 @@
 import { useState } from "react";
 import ToolsPage from "./pages/ToolsPage";
 import OwnerRequestsPage from "./pages/OwnerRequestsPage";
+import BorrowerRequestsPage from "./pages/BorrowerRequestsPage";
 
-type View = "tools" | "requests";
+type View = "tools" | "ownerRequests" | "myRequests";
 
 function App() {
   const [view, setView] = useState<View>("tools");
@@ -36,22 +37,39 @@ function App() {
 
           <button
             type="button"
-            onClick={() => setView("requests")}
+            onClick={() => setView("ownerRequests")}
             style={{
               padding: "0.5rem 1rem",
               borderRadius: "4px",
               border:
-                view === "requests" ? "2px solid #000" : "1px solid #ccc",
-              backgroundColor: view === "requests" ? "#f0f0f0" : "#fff",
+                view === "ownerRequests" ? "2px solid #000" : "1px solid #ccc",
+              backgroundColor: view === "ownerRequests" ? "#f0f0f0" : "#fff",
               color: "#000",
             }}
           >
             Owner Requests
           </button>
+
+                    <button
+            type="button"
+            onClick={() => setView("myRequests")}
+            style={{
+              padding: "0.5rem 1rem",
+              borderRadius: "4px",
+              border:
+                view === "myRequests" ? "2px solid #000" : "1px solid #ccc",
+              backgroundColor: view === "myRequests" ? "#f0f0f0" : "#fff",
+              color: "#000",
+            }}
+          >
+            My Requests
+          </button>
         </div>
       </header>
 
-      {view === "tools" ? <ToolsPage /> : <OwnerRequestsPage />}
+      {view === "tools" && <ToolsPage />}
+      {view === "ownerRequests" && <OwnerRequestsPage />}
+      {view === "myRequests" && <BorrowerRequestsPage />}
     </div>
   );
 }

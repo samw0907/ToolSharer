@@ -33,7 +33,21 @@ def list_requests_for_owner(owner_id: int, db: Session = Depends(get_db)):
     )
     return requests
 
-
+@router.get("/borrower/{borrower_id}", response_model=List[BorrowRequestRead])
+def list_requests_for_borrower(
+    borrower_id: int, db: Session = Depends(get_db)
+):
+    """
+    List all borrow requests created by the given borrower_id.
+    """
+    requests = (
+        db.query(BorrowRequest)
+        .filter(BorrowRequest.borrower_id == borrower_id)
+        .order_by(BorrowRequest.created_at.desc())
+        .all()
+    )
+    return requests
+    
 @router.post("/", response_model=BorrowRequestRead, status_code=201)
 def create_request(payload: BorrowRequestCreate, db: Session = Depends(get_db)):
     tool = db.query(Tool).filter(Tool.id == payload.tool_id).first()
