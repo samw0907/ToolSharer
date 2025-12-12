@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { apiGet } from "../lib/api";
 import CreateToolForm from "../components/CreateToolForm";
+import CreateBorrowRequestForm from "../components/CreateBorrowRequestForm";
 
 interface Tool {
   id: number;
@@ -12,10 +13,32 @@ interface Tool {
   is_available: boolean;
 }
 
+interface BorrowRequest {
+  id: number;
+  tool_id: number;
+  borrower_id: number;
+  message: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// TEMP: “logged in” borrower id for testing.
+// Make sure a user with this ID exists in the backend (via Swagger).
+const TEST_BORROWER_ID = 2;
+
 export default function ToolsPage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // track which tool's "request" form is open
+  const [activeRequestToolId, setActiveRequestToolId] = useState<number | null>(
+    null
+  );
+
+  // just to show that something happened
+  const [lastRequest, setLastRequest] = useState<BorrowRequest | null>(null);
 
   function loadTools() {
     setLoading(true);
@@ -38,8 +61,13 @@ export default function ToolsPage() {
   }, []);
 
   function handleToolCreated(tool: Tool) {
-    // append newly created tool to the list
     setTools((prev) => [...prev, tool]);
+  }
+
+  function handleBorrowRequestCreated(request: BorrowRequest) {
+    console.log("Borrow request received in ToolsPage:", request);
+    setLastRequest(request);
+    setActiveRequestToolId(null);
   }
 
   return (
@@ -48,15 +76,37 @@ export default function ToolsPage() {
 
       <CreateToolForm onCreated={handleToolCreated} />
 
+      {lastRequest && (
+        <div
+          style={{
+            marginBottom: "1rem",
+            padding: "0.75rem",
+            border: "1px solid #4caf50",
+            borderRadius: "4px",
+            backgroundColor: "#f0fff0",
+          }}
+        >
+          <strong>Borrow request created:</strong> “{lastRequest.message}” for
+          tool #{lastRequest.tool_id} (status: {lastRequest.status})
+        </div>
+      )}
+
       {loading && <p>Loading tools...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {!loading && !error && tools.length === 0 && <p>No tools found.</p>}
 
       {!loading && !error && tools.length > 0 && (
-        <ul>
+        <ul style={{ listStyle: "none", padding: 0 }}>
           {tools.map((t) => (
-            <li key={t.id} style={{ marginBottom: "1rem" }}>
+            <li
+              key={t.id}
+              style={{
+                marginBottom: "1.5rem",
+                paddingBottom: "1rem",
+                borderBottom: "1px solid #ddd",
+              }}
+            >
               <strong>{t.name}</strong> — {t.description}
               <br />
               <span>{t.location}</span>
@@ -65,6 +115,29 @@ export default function ToolsPage() {
                 Owner ID: {t.owner_id} |{" "}
                 {t.is_available ? "Available" : "Not available"}
               </small>
+              <div style={{ marginTop: "0.5rem" }}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveRequestToolId(
+                      activeRequestToolId === t.id ? null : t.id
+                    )
+                  }
+                >
+                  {activeRequestToolId === t.id
+                    ? "Hide request form"
+                    : "Request to borrow"}
+                </button>
+              </div>
+
+              {activeRequestToolId === t.id && (
+                <CreateBorrowRequestForm
+                  toolId={t.id}
+                  borrowerId={TEST_BORROWER_ID}
+                  onCreated={handleBorrowRequestCreated}
+                  onCancel={() => setActiveRequestToolId(null)}
+                />
+              )}
             </li>
           ))}
         </ul>
