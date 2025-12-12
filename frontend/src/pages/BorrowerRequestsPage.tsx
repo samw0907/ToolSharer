@@ -12,9 +12,11 @@ interface BorrowRequest {
   updated_at: string;
 }
 
-const TEST_BORROWER_ID = 2;
+interface BorrowerRequestsPageProps {
+  borrowerId: number;
+}
 
-export default function BorrowerRequestsPage() {
+export default function BorrowerRequestsPage({ borrowerId, }: BorrowerRequestsPageProps) {
   const [requests, setRequests] = useState<BorrowRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +26,7 @@ export default function BorrowerRequestsPage() {
       try {
         setLoading(true);
         const data = await apiGet<BorrowRequest[]>(
-          `/borrow_requests/borrower/${TEST_BORROWER_ID}`
+          `/borrow_requests/borrower/${borrowerId}`
         );
         setRequests(data);
         setError(null);

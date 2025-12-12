@@ -12,9 +12,11 @@ interface BorrowRequest {
   updated_at: string;
 }
 
-const TEST_OWNER_ID = 1;
+interface OwnerRequestsPageProps {
+  ownerId: number;
+}
 
-export default function OwnerRequestsPage() {
+export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
   const [requests, setRequests] = useState<BorrowRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,7 @@ export default function OwnerRequestsPage() {
       try {
         setLoading(true);
         const data = await apiGet<BorrowRequest[]>(
-          `/borrow_requests/owner/${TEST_OWNER_ID}`
+          `/borrow_requests/owner/${ownerId}`
         );
         setRequests(data);
         setError(null);

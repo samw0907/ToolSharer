@@ -23,18 +23,16 @@ interface BorrowRequest {
   updated_at: string;
 }
 
-const TEST_BORROWER_ID = 2;
+interface ToolsPageProps {
+  currentUserId: number;
+}
 
-export default function ToolsPage() {
+
+export default function ToolsPage({ currentUserId }: ToolsPageProps) {
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-
-  const [activeRequestToolId, setActiveRequestToolId] = useState<number | null>(
-    null
-  );
-
+  const [activeRequestToolId, setActiveRequestToolId] = useState<number | null>(null);
   const [lastRequest, setLastRequest] = useState<BorrowRequest | null>(null);
 
   function loadTools() {
@@ -130,7 +128,7 @@ export default function ToolsPage() {
               {activeRequestToolId === t.id && (
                 <CreateBorrowRequestForm
                   toolId={t.id}
-                  borrowerId={TEST_BORROWER_ID}
+                  borrowerId={currentUserId}
                   onCreated={handleBorrowRequestCreated}
                   onCancel={() => setActiveRequestToolId(null)}
                 />
