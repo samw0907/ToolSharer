@@ -109,3 +109,19 @@ def decline_request(request_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(borrow_request)
     return borrow_request
+
+
+@router.patch("/{request_id}/cancel", response_model=BorrowRequestRead)
+def cancel_request(request_id: int, db: Session = Depends(get_db)):
+
+    borrow_request = _get_request_or_404(request_id, db)
+
+    if borrow_request.status != RequestStatus.PENDING:
+        raise HTTPException(
+            status_code=400, detail="Only pending requests can be updated"
+        )
+
+    borrow_request.status = RequestStatus.CANCELLED
+    db.commit()
+    db.refresh(borrow_request)
+    return borrow_request

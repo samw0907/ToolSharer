@@ -1,6 +1,6 @@
 // src/pages/BorrowerRequestsPage.tsx
 import { useEffect, useState } from "react";
-import { apiGet } from "../lib/api";
+import { apiGet, apiPatch } from "../lib/api";
 
 interface ToolMini {
   id: number;
@@ -26,6 +26,7 @@ export default function BorrowerRequestsPage({ borrowerId, }: BorrowerRequestsPa
   const [requests, setRequests] = useState<BorrowRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchRequests() {
@@ -46,6 +47,21 @@ export default function BorrowerRequestsPage({ borrowerId, }: BorrowerRequestsPa
 
     fetchRequests();
   }, [borrowerId]);
+
+  async function cancelRequest(requestId: number) {
+    try {
+      setUpdatingId(requestId);
+      const updated = await apiPatch<BorrowRequest>(
+        `/borrow_requests/${requestId}/cancel`
+      );
+      setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+    } catch (err) {
+      console.error(err);
+      setError("Failed to cancel request.");
+    } finally {
+      setUpdatingId(null);
+    }
+  }
 
   if (loading) {
     return (
@@ -97,6 +113,9 @@ export default function BorrowerRequestsPage({ borrowerId, }: BorrowerRequestsPa
             <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
               Status
             </th>
+            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -117,6 +136,19 @@ export default function BorrowerRequestsPage({ borrowerId, }: BorrowerRequestsPa
                 </td>
                 <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
                   {r.status}
+                </td>
+                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                  {r.status === "PENDING" ? (
+                    <button
+                      type="button"
+                      onClick={() => cancelRequest(r.id)}
+                      disabled={updatingId === r.id}
+                    >
+                      {updatingId === r.id ? "Cancelling..." : "Cancel"}
+                    </button>
+                    ) : (
+                    <span style={{ color: "#666" }}>—</span>
+                  )}
                 </td>
               </tr>
             );
