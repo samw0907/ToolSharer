@@ -5,6 +5,22 @@ from pydantic import BaseModel
 
 from app.models.borrow_request import RequestStatus
 
+class BorrowRequestToolRead(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
+class BorrowRequestUserRead(BaseModel):
+    id: int
+    email: str
+    full_name: str | None = None
+
+    class Config:
+        from_attributes = True
+
 
 class BorrowRequestBase(BaseModel):
     tool_id: int
@@ -21,6 +37,10 @@ class BorrowRequestRead(BorrowRequestBase):
     status: RequestStatus
     created_at: datetime
     updated_at: datetime
+
+    tool: BorrowRequestToolRead | None = None
+    borrower: BorrowRequestUserRead | None = None
+
 
     class Config:
         from_attributes = True

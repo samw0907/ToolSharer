@@ -2,6 +2,11 @@
 import { useEffect, useState } from "react";
 import { apiGet } from "../lib/api";
 
+interface ToolMini {
+  id: number;
+  name: string;
+}
+
 interface BorrowRequest {
   id: number;
   tool_id: number;
@@ -10,6 +15,7 @@ interface BorrowRequest {
   status: "PENDING" | "APPROVED" | "DECLINED" | "CANCELLED";
   created_at: string;
   updated_at: string;
+  tool?: ToolMini | null;
 }
 
 interface BorrowerRequestsPageProps {
@@ -39,7 +45,7 @@ export default function BorrowerRequestsPage({ borrowerId, }: BorrowerRequestsPa
     }
 
     fetchRequests();
-  }, []);
+  }, [borrowerId]);
 
   if (loading) {
     return (
@@ -68,7 +74,7 @@ export default function BorrowerRequestsPage({ borrowerId, }: BorrowerRequestsPa
     );
   }
 
-  return (
+   return (
     <div style={{ padding: "2rem" }}>
       <h2>My Borrow Requests</h2>
 
@@ -83,10 +89,7 @@ export default function BorrowerRequestsPage({ borrowerId, }: BorrowerRequestsPa
         <thead>
           <tr>
             <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              ID
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Tool ID
+              Tool
             </th>
             <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
               Message
@@ -94,60 +97,30 @@ export default function BorrowerRequestsPage({ borrowerId, }: BorrowerRequestsPa
             <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
               Status
             </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Created At
-            </th>
           </tr>
         </thead>
         <tbody>
-          {requests.map((r) => (
-            <tr key={r.id}>
-              <td
-                style={{
-                  borderBottom: "1px solid #eee",
-                  padding: "0.5rem",
-                }}
-              >
-                {r.id}
-              </td>
-              <td
-                style={{
-                  borderBottom: "1px solid #eee",
-                  padding: "0.5rem",
-                }}
-              >
-                {r.tool_id}
-              </td>
-              <td
-                style={{
-                  borderBottom: "1px solid #eee",
-                  padding: "0.5rem",
-                }}
-              >
-                {r.message || (
-                  <span style={{ fontStyle: "italic", color: "#666" }}>
-                    No message
-                  </span>
-                )}
-              </td>
-              <td
-                style={{
-                  borderBottom: "1px solid #eee",
-                  padding: "0.5rem",
-                }}
-              >
-                {r.status}
-              </td>
-              <td
-                style={{
-                  borderBottom: "1px solid #eee",
-                  padding: "0.5rem",
-                }}
-              >
-                {new Date(r.created_at).toLocaleString()}
-              </td>
-            </tr>
-          ))}
+          {requests.map((r) => {
+            const toolLabel = r.tool?.name ?? `Tool #${r.tool_id}`;
+
+            return (
+              <tr key={r.id}>
+                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                  {toolLabel}
+                </td>
+                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                  {r.message || (
+                    <span style={{ fontStyle: "italic", color: "#666" }}>
+                      No message
+                    </span>
+                  )}
+                </td>
+                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                  {r.status}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

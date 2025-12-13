@@ -2,7 +2,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.db.session import get_db
 from app.models.borrow_request import BorrowRequest, RequestStatus
@@ -15,34 +15,32 @@ router = APIRouter(prefix="/borrow_requests", tags=["borrow_requests"])
 
 @router.get("/", response_model=List[BorrowRequestRead])
 def list_requests(db: Session = Depends(get_db)):
-    requests = db.query(BorrowRequest).all()
+    requests = (
+        db.query(BorrowRequest)
+        .options(joinedload(BorrowRequest.tool), joinedload(BorrowRequest.borrower))
+        .all()
+    )
     return requests
 
 
 @router.get("/owner/{owner_id}", response_model=List[BorrowRequestRead])
 def list_requests_for_owner(owner_id: int, db: Session = Depends(get_db)):
-    """
-    List all borrow requests for tools owned by the given owner_id.
-    """
     requests = (
         db.query(BorrowRequest)
         .join(Tool, BorrowRequest.tool_id == Tool.id)
         .filter(Tool.owner_id == owner_id)
+        .options(joinedload(BorrowRequest.tool), joinedload(BorrowRequest.borrower))
         .order_by(BorrowRequest.created_at.desc())
         .all()
     )
     return requests
 
 @router.get("/borrower/{borrower_id}", response_model=List[BorrowRequestRead])
-def list_requests_for_borrower(
-    borrower_id: int, db: Session = Depends(get_db)
-):
-    """
-    List all borrow requests created by the given borrower_id.
-    """
+def list_requests_for_borrower(borrower_id: int, db: Session = Depends(get_db)):
     requests = (
         db.query(BorrowRequest)
         .filter(BorrowRequest.borrower_id == borrower_id)
+        .options(joinedload(BorrowRequest.tool), joinedload(BorrowRequest.borrower))
         .order_by(BorrowRequest.created_at.desc())
         .all()
     )
@@ -77,9 +75,7 @@ def create_request(payload: BorrowRequestCreate, db: Session = Depends(get_db)):
 
 
 def _get_request_or_404(request_id: int, db: Session) -> BorrowRequest:
-    borrow_request = (
-        db.query(BorrowRequest).filter(BorrowRequest.id == request_id).first()
-    )
+    borrow_request = (db.query(BorrowRequest).filter(BorrowRequest.id == request_id).first())
     if not borrow_request:
         raise HTTPException(status_code=404, detail="Borrow request not found")
     return borrow_request
@@ -87,9 +83,6 @@ def _get_request_or_404(request_id: int, db: Session) -> BorrowRequest:
 
 @router.patch("/{request_id}/approve", response_model=BorrowRequestRead)
 def approve_request(request_id: int, db: Session = Depends(get_db)):
-    """
-    Mark a borrow request as APPROVED if it is currently PENDING.
-    """
     borrow_request = _get_request_or_404(request_id, db)
 
     if borrow_request.status != RequestStatus.PENDING:
@@ -105,9 +98,6 @@ def approve_request(request_id: int, db: Session = Depends(get_db)):
 
 @router.patch("/{request_id}/decline", response_model=BorrowRequestRead)
 def decline_request(request_id: int, db: Session = Depends(get_db)):
-    """
-    Mark a borrow request as DECLINED if it is currently PENDING.
-    """
     borrow_request = _get_request_or_404(request_id, db)
 
     if borrow_request.status != RequestStatus.PENDING:

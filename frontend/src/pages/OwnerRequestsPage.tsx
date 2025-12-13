@@ -2,6 +2,17 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPatch } from "../lib/api";
 
+interface ToolMini {
+  id: number;
+  name: string;
+}
+
+interface UserMini {
+  id: number;
+  email: string;
+  full_name: string | null;
+}
+
 interface BorrowRequest {
   id: number;
   tool_id: number;
@@ -10,6 +21,8 @@ interface BorrowRequest {
   status: "PENDING" | "APPROVED" | "DECLINED" | "CANCELLED";
   created_at: string;
   updated_at: string;
+  tool?: ToolMini | null;
+  borrower?: UserMini | null;
 }
 
 interface OwnerRequestsPageProps {
@@ -40,7 +53,7 @@ export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
     }
 
     fetchRequests();
-  }, []);
+  }, [ownerId]);
 
   async function updateStatus(
     requestId: number,
@@ -101,16 +114,13 @@ export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
           textAlign: "left",
         }}
       >
-        <thead>
+                <thead>
           <tr>
             <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              ID
+              Tool
             </th>
             <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Tool ID
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Borrower ID
+              Borrower
             </th>
             <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
               Message
@@ -128,52 +138,31 @@ export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
             const isPending = r.status === "PENDING";
             const isUpdating = updatingId === r.id;
 
+            const toolLabel = r.tool?.name ?? `Tool #${r.tool_id}`;
+            const borrowerLabel = r.borrower?.email ?? `User #${r.borrower_id}`;
+
             return (
               <tr key={r.id}>
-                <td
-                  style={{
-                    borderBottom: "1px solid #eee",
-                    padding: "0.5rem",
-                  }}
-                >
-                  {r.id}
+                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                  {toolLabel}
                 </td>
-                <td
-                  style={{
-                    borderBottom: "1px solid #eee",
-                    padding: "0.5rem",
-                  }}
-                >
-                  {r.tool_id}
+
+                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                  {borrowerLabel}
                 </td>
-                <td
-                  style={{
-                    borderBottom: "1px solid #eee",
-                    padding: "0.5rem",
-                  }}
-                >
-                  {r.borrower_id}
-                </td>
-                <td
-                  style={{
-                    borderBottom: "1px solid #eee",
-                    padding: "0.5rem",
-                  }}
-                >
+
+                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
                   {r.message || (
                     <span style={{ fontStyle: "italic", color: "#666" }}>
                       No message
                     </span>
                   )}
                 </td>
-                <td
-                  style={{
-                    borderBottom: "1px solid #eee",
-                    padding: "0.5rem",
-                  }}
-                >
+
+                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
                   {r.status}
                 </td>
+
                 <td
                   style={{
                     borderBottom: "1px solid #eee",
