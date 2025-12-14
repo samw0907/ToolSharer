@@ -22,7 +22,7 @@ interface BorrowerRequestsPageProps {
   borrowerId: number;
 }
 
-export default function BorrowerRequestsPage({ borrowerId, }: BorrowerRequestsPageProps) {
+export default function BorrowerRequestsPage({ borrowerId }: BorrowerRequestsPageProps) {
   const [requests, setRequests] = useState<BorrowRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

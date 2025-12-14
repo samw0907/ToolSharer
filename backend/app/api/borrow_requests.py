@@ -61,6 +61,20 @@ def create_request(payload: BorrowRequestCreate, db: Session = Depends(get_db)):
             status_code=400, detail="Owner cannot request their own tool"
         )
 
+    existing_pending = (
+        db.query(BorrowRequest)
+        .filter(
+            BorrowRequest.tool_id == payload.tool_id,
+            BorrowRequest.borrower_id == payload.borrower_id,
+            BorrowRequest.status == RequestStatus.PENDING,
+        )
+        .first()
+    )
+    if existing_pending:
+        raise HTTPException(
+            status_code=400, detail="A pending request already exists for this tool"
+        )
+
     req = BorrowRequest(
         tool_id=payload.tool_id,
         borrower_id=payload.borrower_id,

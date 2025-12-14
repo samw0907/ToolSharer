@@ -45,7 +45,11 @@ export default function CreateBorrowRequestForm({
       onCreated(created);
     } catch (err) {
       console.error(err);
-      setError("Failed to create borrow request.");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to create borrow request.");
+      }
     } finally {
       setSubmitting(false);
     }
