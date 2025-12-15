@@ -104,7 +104,16 @@ def approve_request(request_id: int, db: Session = Depends(get_db)):
             status_code=400, detail="Only pending requests can be updated"
         )
 
+    tool = db.query(Tool).filter(Tool.id == borrow_request.tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=400, detail="Tool not found")
+
+    if not tool.is_available:
+        raise HTTPException(status_code=400, detail="Tool is not available")
+
     borrow_request.status = RequestStatus.APPROVED
+
+    tool.is_available = False
 
     (
         db.query(BorrowRequest)
