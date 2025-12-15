@@ -105,10 +105,20 @@ def approve_request(request_id: int, db: Session = Depends(get_db)):
         )
 
     borrow_request.status = RequestStatus.APPROVED
+
+    (
+        db.query(BorrowRequest)
+        .filter(
+            BorrowRequest.tool_id == borrow_request.tool_id,
+            BorrowRequest.id != borrow_request.id,
+            BorrowRequest.status == RequestStatus.PENDING,
+        )
+        .update({BorrowRequest.status: RequestStatus.DECLINED})
+    )
+
     db.commit()
     db.refresh(borrow_request)
     return borrow_request
-
 
 @router.patch("/{request_id}/decline", response_model=BorrowRequestRead)
 def decline_request(request_id: int, db: Session = Depends(get_db)):
