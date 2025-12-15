@@ -35,41 +35,56 @@ export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    async function fetchRequests() {
-      try {
-        setLoading(true);
-        const data = await apiGet<BorrowRequest[]>(
-          `/borrow_requests/owner/${ownerId}`
-        );
-        setRequests(data);
-        setError(null);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load incoming borrow requests.");
-      } finally {
-        setLoading(false);
-      }
+  async function fetchRequests() {
+    try {
+      setLoading(true);
+      const data = await apiGet<BorrowRequest[]>(
+        `/borrow_requests/owner/${ownerId}`
+      );
+      setRequests(data);
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load incoming borrow requests.");
+    } finally {
+      setLoading(false);
     }
+  }
 
+  useEffect(() => {
     fetchRequests();
   }, [ownerId]);
 
-  async function updateStatus(
-    requestId: number,
-    action: "approve" | "decline"
-  ) {
+
+  async function updateStatus(requestId: number, action: "approve" | "decline") {
     try {
       setUpdatingId(requestId);
       const updated = await apiPatch<BorrowRequest>(
         `/borrow_requests/${requestId}/${action}`
       );
-      setRequests((prev) =>
-        prev.map((r) => (r.id === updated.id ? updated : r))
-      );
+
+      if (action === "approve") {
+        await fetchRequests();
+        return;
+      }
+
+      setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
     } catch (err) {
       console.error(err);
       setError("Failed to update request status.");
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  async function returnTool(requestId: number) {
+    try {
+      setUpdatingId(requestId);
+      await apiPatch<BorrowRequest>(`/borrow_requests/${requestId}/return`);
+      await fetchRequests();
+    } catch (err) {
+      console.error(err);
+      setError("Failed to return tool.");
     } finally {
       setUpdatingId(null);
     }
@@ -114,7 +129,7 @@ export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
           textAlign: "left",
         }}
       >
-                <thead>
+        <thead>
           <tr>
             <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
               Tool
@@ -136,6 +151,7 @@ export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
         <tbody>
           {requests.map((r) => {
             const isPending = r.status === "PENDING";
+            const isApproved = r.status === "APPROVED";
             const isUpdating = updatingId === r.id;
 
             const toolLabel = r.tool?.name ?? `Tool #${r.tool_id}`;
@@ -184,6 +200,13 @@ export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
                     disabled={!isPending || isUpdating}
                   >
                     Decline
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => returnTool(r.id)}
+                    disabled={!isApproved || isUpdating}
+                  >
+                    Return
                   </button>
                 </td>
               </tr>

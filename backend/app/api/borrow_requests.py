@@ -52,6 +52,9 @@ def create_request(payload: BorrowRequestCreate, db: Session = Depends(get_db)):
     if not tool:
         raise HTTPException(status_code=400, detail="Tool not found")
 
+    if not tool.is_available:
+        raise HTTPException(status_code=400, detail="Tool is not available")
+
     borrower = db.query(User).filter(User.id == payload.borrower_id).first()
     if not borrower:
         raise HTTPException(status_code=400, detail="Borrower not found")
@@ -155,6 +158,27 @@ def cancel_request(request_id: int, db: Session = Depends(get_db)):
         )
 
     borrow_request.status = RequestStatus.CANCELLED
+    db.commit()
+    db.refresh(borrow_request)
+    return borrow_request
+
+@router.patch("/{request_id}/return", response_model=BorrowRequestRead)
+def return_tool(request_id: int, db: Session = Depends(get_db)):
+    borrow_request = _get_request_or_404(request_id, db)
+
+    if borrow_request.status != RequestStatus.APPROVED:
+        raise HTTPException(
+            status_code=400, detail="Only approved requests can be returned"
+        )
+
+    tool = db.query(Tool).filter(Tool.id == borrow_request.tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=400, detail="Tool not found")
+
+    tool.is_available = True
+
+    borrow_request.status = RequestStatus.CANCELLED
+
     db.commit()
     db.refresh(borrow_request)
     return borrow_request
