@@ -2,9 +2,11 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.models.borrow_request import BorrowRequest 
 from app.models.tool import Tool
 from app.models.user import User
 from app.schemas.tool import ToolCreate, ToolRead
@@ -58,6 +60,18 @@ def delete_tool(tool_id: int, db: Session = Depends(get_db)):
     if not tool:
         raise HTTPException(status_code=404, detail="Tool not found")
 
+    request_count = (
+        db.query(func.count(BorrowRequest.id))
+        .filter(BorrowRequest.tool_id == tool_id)
+        .scalar()
+    )
+    if request_count and request_count > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete tool with existing borrow requests",
+        )
+
     db.delete(tool)
     db.commit()
     return
+    

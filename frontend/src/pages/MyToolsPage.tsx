@@ -68,7 +68,7 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
       setError(null);
     } catch (err) {
       console.error(err);
-      setError("Failed to delete tool.");
+      setError(err instanceof Error ? err.message : "Failed to delete tool.");
     } finally {
       setDeletingId(null);
     }
