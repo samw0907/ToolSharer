@@ -63,6 +63,7 @@ export default function ToolsPage({ currentUserId }: ToolsPageProps) {
     console.log("Borrow request received in ToolsPage:", request);
     setLastRequest(request);
     setActiveRequestToolId(null);
+    loadTools();
   }
 
   return (
@@ -93,48 +94,56 @@ export default function ToolsPage({ currentUserId }: ToolsPageProps) {
 
       {!loading && !error && tools.length > 0 && (
         <ul style={{ listStyle: "none", padding: 0 }}>
-          {tools.map((t) => (
-            <li
-              key={t.id}
-              style={{
-                marginBottom: "1.5rem",
-                paddingBottom: "1rem",
-                borderBottom: "1px solid #ddd",
-              }}
-            >
-              <strong>{t.name}</strong> — {t.description}
-              <br />
-              <span>{t.location}</span>
-              <br />
-              <small>
-                Owner ID: {t.owner_id} |{" "}
-                {t.is_available ? "Available" : "Not available"}
-              </small>
-              <div style={{ marginTop: "0.5rem" }}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActiveRequestToolId(
-                      activeRequestToolId === t.id ? null : t.id
-                    )
-                  }
-                >
-                  {activeRequestToolId === t.id
-                    ? "Hide request form"
-                    : "Request to borrow"}
-                </button>
-              </div>
+          {tools.map((t) => {
+            const canRequest = t.is_available;
+            const isFormOpen = activeRequestToolId === t.id;
 
-              {activeRequestToolId === t.id && (
-                <CreateBorrowRequestForm
-                  toolId={t.id}
-                  borrowerId={currentUserId}
-                  onCreated={handleBorrowRequestCreated}
-                  onCancel={() => setActiveRequestToolId(null)}
-                />
-              )}
-            </li>
-          ))}
+            return (
+              <li
+                key={t.id}
+                style={{
+                  marginBottom: "1.5rem",
+                  paddingBottom: "1rem",
+                  borderBottom: "1px solid #ddd",
+                }}
+              >
+                <strong>{t.name}</strong> — {t.description}
+                <br />
+                <span>{t.location}</span>
+                <br />
+                <small>
+                  Owner ID: {t.owner_id} |{" "}
+                  {t.is_available ? "Available" : "Not available"}
+                </small>
+
+                <div style={{ marginTop: "0.5rem" }}>
+                  <button
+                    type="button"
+                    disabled={!canRequest}
+                    onClick={() => {
+                      if (!canRequest) return;
+                      setActiveRequestToolId(isFormOpen ? null : t.id);
+                    }}
+                  >
+                    {!canRequest
+                      ? "Unavailable"
+                      : isFormOpen
+                      ? "Hide request form"
+                      : "Request to borrow"}
+                  </button>
+                </div>
+
+                {canRequest && isFormOpen && (
+                  <CreateBorrowRequestForm
+                    toolId={t.id}
+                    borrowerId={currentUserId}
+                    onCreated={handleBorrowRequestCreated}
+                    onCancel={() => setActiveRequestToolId(null)}
+                  />
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
