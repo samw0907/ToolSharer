@@ -29,7 +29,6 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
       setTools(data);
       setError(null);
     } catch (err) {
-      console.error(err);
       setError("Failed to load your tools.");
     } finally {
       setLoading(false);
@@ -43,11 +42,11 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
   async function toggleAvailability(toolId: number) {
     try {
       setUpdatingId(toolId);
+      setError(null);
       const updated = await apiPatch<Tool>(`/tools/${toolId}/availability`);
       setTools((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
     } catch (err) {
-      console.error(err);
-      setError("Failed to update tool availability.");
+      setError(err instanceof Error ? err.message : "Failed to update tool availability.");
     } finally {
       setUpdatingId(null);
     }
@@ -61,13 +60,13 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
 
     try {
       setDeletingId(toolId);
+      setError(null);
 
       await apiDelete(`/tools/${toolId}`);
 
       setTools((prev) => prev.filter((t) => t.id !== toolId));
       setError(null);
     } catch (err) {
-      console.error(err);
       setError(err instanceof Error ? err.message : "Failed to delete tool.");
     } finally {
       setDeletingId(null);
@@ -83,98 +82,110 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
     );
   }
 
-  if (error) {
-    return (
-      <div style={{ padding: "2rem" }}>
-        <h2>My Tools</h2>
-        <p style={{ color: "red" }}>{error}</p>
-      </div>
-    );
-  }
-
-  if (tools.length === 0) {
-    return (
-      <div style={{ padding: "2rem" }}>
-        <h2>My Tools</h2>
-        <p>You don’t own any tools yet.</p>
-      </div>
-    );
-  }
-
-  return (
+ return (
     <div style={{ padding: "2rem" }}>
       <h2>My Tools</h2>
 
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          marginTop: "1rem",
-          textAlign: "left",
-        }}
-      >
-        <thead>
-          <tr>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Name
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Location
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Status
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Actions
-            </th>
-          </tr>
-        </thead>
+      {error && (
+        <div
+          style={{
+            marginTop: "0.75rem",
+            marginBottom: "0.75rem",
+            padding: "0.75rem",
+            border: "1px solid #d32f2f",
+            borderRadius: "4px",
+            backgroundColor: "#fff5f5",
+            color: "#d32f2f",
+          }}
+        >
+          {error}
+        </div>
+      )}
 
-        <tbody>
-          {tools.map((t) => {
-            const isUpdating = updatingId === t.id;
-            const isDeleting = deletingId === t.id;
+      {tools.length === 0 ? (
+        <p>You don’t own any tools yet.</p>
+      ) : (
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            marginTop: "1rem",
+            textAlign: "left",
+          }}
+        >
+          <thead>
+            <tr>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
+                Name
+              </th>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
+                Location
+              </th>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
+                Status
+              </th>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
+                Actions
+              </th>
+            </tr>
+          </thead>
 
-            return (
-              <tr key={t.id}>
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  <strong>{t.name}</strong>
-                  <div style={{ color: "#aaa" }}>{t.description}</div>
-                </td>
+          <tbody>
+            {tools.map((t) => {
+              const isUpdating = updatingId === t.id;
+              const isDeleting = deletingId === t.id;
 
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  {t.location}
-                </td>
-
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  {t.is_available ? "Available" : "Not available"}
-                </td>
-
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  <button
-                    type="button"
-                    onClick={() => toggleAvailability(t.id)}
-                    disabled={isUpdating || isDeleting}
+              return (
+                <tr key={t.id}>
+                  <td
+                    style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}
                   >
-                    {isUpdating
-                      ? "Updating..."
-                      : t.is_available
-                      ? "Mark unavailable"
-                      : "Mark available"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteTool(t.id)}
-                    disabled={isUpdating || isDeleting}
+                    <strong>{t.name}</strong>
+                    <div style={{ color: "#aaa" }}>{t.description}</div>
+                  </td>
+
+                  <td
+                    style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}
                   >
-                    {isDeleting ? "Deleting..." : "Delete"}
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                    {t.location}
+                  </td>
+
+                  <td
+                    style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}
+                  >
+                    {t.is_available ? "Available" : "Not available"}
+                  </td>
+
+                  <td
+                    style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleAvailability(t.id)}
+                      disabled={isUpdating || isDeleting}
+                      style={{ marginRight: "0.5rem" }}
+                    >
+                      {isUpdating
+                        ? "Updating..."
+                        : t.is_available
+                        ? "Mark unavailable"
+                        : "Mark available"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => deleteTool(t.id)}
+                      disabled={isUpdating || isDeleting}
+                    >
+                      {isDeleting ? "Deleting..." : "Delete"}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
