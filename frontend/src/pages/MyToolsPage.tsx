@@ -1,6 +1,6 @@
 // src/pages/MyToolsPage.tsx
 import { useEffect, useState } from "react";
-import { apiGet, apiPatch } from "../lib/api";
+import { apiGet, apiPatch, apiDelete } from "../lib/api";
 
 interface Tool {
   id: number;
@@ -20,6 +20,7 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   async function fetchMyTools() {
     try {
@@ -49,6 +50,27 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
       setError("Failed to update tool availability.");
     } finally {
       setUpdatingId(null);
+    }
+  }
+
+  async function deleteTool(toolId: number) {
+    const ok = window.confirm(
+      "Delete this tool? This cannot be undone and may affect existing requests."
+    );
+    if (!ok) return;
+
+    try {
+      setDeletingId(toolId);
+
+      await apiDelete(`/tools/${toolId}`);
+
+      setTools((prev) => prev.filter((t) => t.id !== toolId));
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to delete tool.");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -103,7 +125,7 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
               Status
             </th>
             <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Action
+              Actions
             </th>
           </tr>
         </thead>
@@ -111,6 +133,7 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
         <tbody>
           {tools.map((t) => {
             const isUpdating = updatingId === t.id;
+            const isDeleting = deletingId === t.id;
 
             return (
               <tr key={t.id}>
@@ -131,13 +154,20 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
                   <button
                     type="button"
                     onClick={() => toggleAvailability(t.id)}
-                    disabled={isUpdating}
+                    disabled={isUpdating || isDeleting}
                   >
                     {isUpdating
                       ? "Updating..."
                       : t.is_available
                       ? "Mark unavailable"
                       : "Mark available"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteTool(t.id)}
+                    disabled={isUpdating || isDeleting}
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
                   </button>
                 </td>
               </tr>

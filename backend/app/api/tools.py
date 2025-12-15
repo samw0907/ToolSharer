@@ -1,7 +1,7 @@
 # app/api/tools.py
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -52,3 +52,12 @@ def toggle_tool_availability(tool_id: int, db: Session = Depends(get_db)):
     db.refresh(tool)
     return tool
 
+@router.delete("/{tool_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_tool(tool_id: int, db: Session = Depends(get_db)):
+    tool = db.query(Tool).filter(Tool.id == tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+
+    db.delete(tool)
+    db.commit()
+    return
