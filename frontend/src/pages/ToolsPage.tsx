@@ -95,7 +95,8 @@ export default function ToolsPage({ currentUserId }: ToolsPageProps) {
       {!loading && !error && tools.length > 0 && (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {tools.map((t) => {
-            const canRequest = t.is_available;
+            const isOwnTool = t.owner_id === currentUserId;
+            const canRequest = t.is_available && !isOwnTool;
             const isFormOpen = activeRequestToolId === t.id;
 
             return (
@@ -125,8 +126,10 @@ export default function ToolsPage({ currentUserId }: ToolsPageProps) {
                       setActiveRequestToolId(isFormOpen ? null : t.id);
                     }}
                   >
-                    {!canRequest
+                    {!t.is_available
                       ? "Unavailable"
+                      : isOwnTool
+                      ? "Your tool"
                       : isFormOpen
                       ? "Hide request form"
                       : "Request to borrow"}
