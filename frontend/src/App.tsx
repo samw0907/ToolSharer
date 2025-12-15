@@ -3,9 +3,10 @@ import { useEffect, useState, ChangeEvent } from "react";
 import ToolsPage from "./pages/ToolsPage";
 import OwnerRequestsPage from "./pages/OwnerRequestsPage";
 import BorrowerRequestsPage from "./pages/BorrowerRequestsPage";
+import MyToolsPage from "./pages/MyToolsPage";
 import { apiGet } from "./lib/api";
 
-type View = "tools" | "ownerRequests" | "myRequests";
+type View = "tools" | "ownerRequests" | "myRequests" | "myTools";
 
 interface User {
   id: number;
@@ -109,6 +110,20 @@ function App() {
               >
                 My Requests
               </button>
+              <button
+                type="button"
+                onClick={() => setView("myTools")}
+                style={{
+                  padding: "0.5rem 1rem",
+                  borderRadius: "4px",
+                  border:
+                    view === "myTools" ? "2px solid #000" : "1px solid #ccc",
+                  backgroundColor: view === "myTools" ? "#f0f0f0" : "#ffffff",
+                  color: "#000",
+                }}
+              >
+                My Tools
+              </button>
             </div>
           </div>
 
@@ -136,9 +151,8 @@ function App() {
 
       {view === "tools" && <ToolsPage currentUserId={currentUserId} />}
       {view === "ownerRequests" && <OwnerRequestsPage ownerId={currentUserId} />}
-      {view === "myRequests" && (
-        <BorrowerRequestsPage borrowerId={currentUserId} />
-      )}
+      {view === "myRequests" && ( <BorrowerRequestsPage borrowerId={currentUserId} />)}
+      {view === "myTools" && <MyToolsPage ownerId={currentUserId} />}
     </div>
   );
 }

@@ -17,10 +17,13 @@ def list_tools(db: Session = Depends(get_db)):
     tools = db.query(Tool).all()
     return tools
 
+@router.get("/owner/{owner_id}", response_model=List[ToolRead])
+def list_tools_for_owner(owner_id: int, db: Session = Depends(get_db)):
+    tools = db.query(Tool).filter(Tool.owner_id == owner_id).all()
+    return tools
 
 @router.post("/", response_model=ToolRead, status_code=201)
 def create_tool(payload: ToolCreate, db: Session = Depends(get_db)):
-    # Ensure owner exists
     owner = db.query(User).filter(User.id == payload.owner_id).first()
     if not owner:
         raise HTTPException(status_code=400, detail="Owner not found")
@@ -37,3 +40,15 @@ def create_tool(payload: ToolCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(tool)
     return tool
+
+@router.patch("/{tool_id}/availability", response_model=ToolRead)
+def toggle_tool_availability(tool_id: int, db: Session = Depends(get_db)):
+    tool = db.query(Tool).filter(Tool.id == tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+
+    tool.is_available = not tool.is_available
+    db.commit()
+    db.refresh(tool)
+    return tool
+
