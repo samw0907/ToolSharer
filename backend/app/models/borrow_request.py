@@ -13,6 +13,7 @@ class RequestStatus(str, enum.Enum):
     APPROVED = "APPROVED"
     DECLINED = "DECLINED"
     CANCELLED = "CANCELLED"
+    RETURNED = "RETURNED"
 
 
 class BorrowRequest(Base):

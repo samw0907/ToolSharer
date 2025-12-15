@@ -177,7 +177,7 @@ def return_tool(request_id: int, db: Session = Depends(get_db)):
 
     tool.is_available = True
 
-    borrow_request.status = RequestStatus.CANCELLED
+    borrow_request.status = RequestStatus.RETURNED
 
     db.commit()
     db.refresh(borrow_request)

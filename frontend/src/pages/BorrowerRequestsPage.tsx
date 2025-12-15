@@ -12,7 +12,7 @@ interface BorrowRequest {
   tool_id: number;
   borrower_id: number;
   message: string | null;
-  status: "PENDING" | "APPROVED" | "DECLINED" | "CANCELLED";
+  status: "PENDING" | "APPROVED" | "DECLINED" | "CANCELLED" | "RETURNED";
   created_at: string;
   updated_at: string;
   tool?: ToolMini | null;
