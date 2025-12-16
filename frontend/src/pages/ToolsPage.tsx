@@ -11,6 +11,7 @@ interface Tool {
   location: string;
   owner_id: number;
   is_available: boolean;
+  has_pending_request?: boolean;
 }
 
 interface BorrowRequest {
@@ -37,7 +38,7 @@ export default function ToolsPage({ currentUserId }: ToolsPageProps) {
 
   function loadTools() {
     setLoading(true);
-    apiGet<Tool[]>("/tools")
+    apiGet<Tool[]>(`/tools?current_user_id=${currentUserId}`)
       .then((data) => {
         setTools(data);
         setError(null);
@@ -53,7 +54,7 @@ export default function ToolsPage({ currentUserId }: ToolsPageProps) {
 
   useEffect(() => {
     loadTools();
-  }, []);
+  }, [currentUserId]);
 
   function handleToolCreated(tool: Tool) {
     setTools((prev) => [...prev, tool]);
@@ -96,8 +97,15 @@ export default function ToolsPage({ currentUserId }: ToolsPageProps) {
         <ul style={{ listStyle: "none", padding: 0 }}>
           {tools.map((t) => {
             const isOwnTool = t.owner_id === currentUserId;
-            const canRequest = t.is_available && !isOwnTool;
+            const hasPending = Boolean(t.has_pending_request);
             const isFormOpen = activeRequestToolId === t.id;
+            const canRequest = t.is_available && !isOwnTool && !hasPending;
+
+            let buttonLabel = "Request to borrow";
+            if (!t.is_available) buttonLabel = "Unavailable";
+            else if (isOwnTool) buttonLabel = "Your tool";
+            else if (hasPending) buttonLabel = "Request pending";
+            else if (isFormOpen) buttonLabel = "Hide request form";
 
             return (
               <li
@@ -113,8 +121,7 @@ export default function ToolsPage({ currentUserId }: ToolsPageProps) {
                 <span>{t.location}</span>
                 <br />
                 <small>
-                  Owner ID: {t.owner_id} |{" "}
-                  {t.is_available ? "Available" : "Not available"}
+                  Owner ID: {t.owner_id} | {t.is_available ? "Available" : "Not available"}
                 </small>
 
                 <div style={{ marginTop: "0.5rem" }}>
@@ -126,13 +133,7 @@ export default function ToolsPage({ currentUserId }: ToolsPageProps) {
                       setActiveRequestToolId(isFormOpen ? null : t.id);
                     }}
                   >
-                    {!t.is_available
-                      ? "Unavailable"
-                      : isOwnTool
-                      ? "Your tool"
-                      : isFormOpen
-                      ? "Hide request form"
-                      : "Request to borrow"}
+                    {buttonLabel}
                   </button>
                 </div>
 

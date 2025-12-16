@@ -16,6 +16,7 @@ class ToolCreate(ToolBase):
 
 class ToolRead(ToolBase):
     id: int
+    has_pending_request: bool = False
 
     class Config:
         from_attributes = True

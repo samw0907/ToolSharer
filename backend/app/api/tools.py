@@ -1,12 +1,12 @@
 # app/api/tools.py
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.models.borrow_request import BorrowRequest 
+from app.models.borrow_request import BorrowRequest, RequestStatus
 from app.models.tool import Tool
 from app.models.user import User
 from app.schemas.tool import ToolCreate, ToolRead
@@ -15,8 +15,28 @@ router = APIRouter(prefix="/tools", tags=["tools"])
 
 
 @router.get("/", response_model=List[ToolRead])
-def list_tools(db: Session = Depends(get_db)):
+def list_tools(
+    db: Session = Depends(get_db),
+    current_user_id: int | None = Query(default=None),
+):
     tools = db.query(Tool).all()
+
+    if current_user_id is None:
+        return tools
+
+    pending_tool_ids = (
+        db.query(BorrowRequest.tool_id)
+        .filter(
+            BorrowRequest.borrower_id == current_user_id,
+            BorrowRequest.status == RequestStatus.PENDING,
+        )
+        .all()
+    )
+    pending_set = {row[0] for row in pending_tool_ids}
+
+    for t in tools:
+        setattr(t, "has_pending_request", t.id in pending_set)
+
     return tools
 
 @router.get("/owner/{owner_id}", response_model=List[ToolRead])
