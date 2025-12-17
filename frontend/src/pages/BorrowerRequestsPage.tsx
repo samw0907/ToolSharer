@@ -1,4 +1,3 @@
-// src/pages/BorrowerRequestsPage.tsx
 import { useEffect, useState } from "react";
 import { apiGet, apiPatch } from "../lib/api";
 
@@ -28,36 +27,40 @@ export default function BorrowerRequestsPage({ borrowerId }: BorrowerRequestsPag
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    async function fetchRequests() {
-      try {
-        setLoading(true);
-        const data = await apiGet<BorrowRequest[]>(
-          `/borrow_requests/borrower/${borrowerId}`
-        );
-        setRequests(data);
-        setError(null);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load your borrow requests.");
-      } finally {
-        setLoading(false);
-      }
+  async function fetchRequests() {
+    try {
+      setLoading(true);
+      const data = await apiGet<BorrowRequest[]>(`/borrow_requests/borrower/${borrowerId}`);
+      setRequests(data);
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load your borrow requests.");
+    } finally {
+      setLoading(false);
     }
+  }
 
+  useEffect(() => {
     fetchRequests();
   }, [borrowerId]);
 
   async function cancelRequest(requestId: number) {
+    const ok = window.confirm("Cancel this request?");
+    if (!ok) return;
+
     try {
       setUpdatingId(requestId);
-      const updated = await apiPatch<BorrowRequest>(
-        `/borrow_requests/${requestId}/cancel`
-      );
-      setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+      setError(null);
+
+      // CHANGE: call backend cancel endpoint
+      await apiPatch<BorrowRequest>(`/borrow_requests/${requestId}/cancel`);
+
+      // CHANGE: refresh list so status updates immediately
+      await fetchRequests();
     } catch (err) {
       console.error(err);
-      setError("Failed to cancel request.");
+      setError(err instanceof Error ? err.message : "Failed to cancel request.");
     } finally {
       setUpdatingId(null);
     }
@@ -66,95 +69,87 @@ export default function BorrowerRequestsPage({ borrowerId }: BorrowerRequestsPag
   if (loading) {
     return (
       <div style={{ padding: "2rem" }}>
-        <h2>My Borrow Requests</h2>
+        <h2>My Requests</h2>
         <p>Loading your requests...</p>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div style={{ padding: "2rem" }}>
-        <h2>My Borrow Requests</h2>
-        <p style={{ color: "red" }}>{error}</p>
-      </div>
-    );
-  }
-
-  if (requests.length === 0) {
-    return (
-      <div style={{ padding: "2rem" }}>
-        <h2>My Borrow Requests</h2>
-        <p>You have not made any borrow requests yet.</p>
-      </div>
-    );
-  }
-
-   return (
+  return (
     <div style={{ padding: "2rem" }}>
-      <h2>My Borrow Requests</h2>
+      <h2>My Requests</h2>
 
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          marginTop: "1rem",
-          textAlign: "left",
-        }}
-      >
-        <thead>
-          <tr>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Tool
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Message
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Status
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {requests.map((r) => {
-            const toolLabel = r.tool?.name ?? `Tool #${r.tool_id}`;
+      {error && (
+        <div
+          style={{
+            marginTop: "0.75rem",
+            marginBottom: "0.75rem",
+            padding: "0.75rem",
+            border: "1px solid #d32f2f",
+            borderRadius: "4px",
+            backgroundColor: "#fff5f5",
+            color: "#d32f2f",
+          }}
+        >
+          {error}
+        </div>
+      )}
 
-            return (
-              <tr key={r.id}>
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  {toolLabel}
-                </td>
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  {r.message || (
-                    <span style={{ fontStyle: "italic", color: "#666" }}>
-                      No message
-                    </span>
-                  )}
-                </td>
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  {r.status}
-                </td>
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  {r.status === "PENDING" ? (
+      {requests.length === 0 ? (
+        <p>You haven’t made any requests yet.</p>
+      ) : (
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            marginTop: "1rem",
+            textAlign: "left",
+          }}
+        >
+          <thead>
+            <tr>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Tool</th>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Message</th>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Status</th>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {requests.map((r) => {
+              const toolLabel = r.tool?.name ?? `Tool #${r.tool_id}`;
+              const isPending = r.status === "PENDING";
+              const isUpdating = updatingId === r.id;
+
+              return (
+                <tr key={r.id}>
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                    {toolLabel}
+                  </td>
+
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                    {r.message || <span style={{ fontStyle: "italic", color: "#666" }}>No message</span>}
+                  </td>
+
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                    {r.status}
+                  </td>
+
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
                     <button
                       type="button"
                       onClick={() => cancelRequest(r.id)}
-                      disabled={updatingId === r.id}
+                      disabled={!isPending || isUpdating}
                     >
-                      {updatingId === r.id ? "Cancelling..." : "Cancel"}
+                      {isUpdating ? "Cancelling..." : "Cancel"}
                     </button>
-                    ) : (
-                    <span style={{ color: "#666" }}>—</span>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
