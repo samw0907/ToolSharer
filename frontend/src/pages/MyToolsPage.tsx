@@ -9,6 +9,9 @@ interface Tool {
   location: string;
   owner_id: number;
   is_available: boolean;
+  is_borrowed?: boolean;
+  borrowed_by_user_id?: number | null;
+  borrowed_by_email?: string | null;
 }
 
 interface MyToolsPageProps {
@@ -82,7 +85,7 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
     );
   }
 
- return (
+  return (
     <div style={{ padding: "2rem" }}>
       <h2>My Tools</h2>
 
@@ -134,36 +137,45 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
             {tools.map((t) => {
               const isUpdating = updatingId === t.id;
               const isDeleting = deletingId === t.id;
+              const isBorrowed = Boolean(t.is_borrowed);
+              const borrowedLabel =
+                t.borrowed_by_email ??
+                (t.borrowed_by_user_id ? `User #${t.borrowed_by_user_id}` : null);
 
               return (
                 <tr key={t.id}>
-                  <td
-                    style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}
-                  >
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
                     <strong>{t.name}</strong>
                     <div style={{ color: "#aaa" }}>{t.description}</div>
                   </td>
 
-                  <td
-                    style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}
-                  >
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
                     {t.location}
                   </td>
 
-                  <td
-                    style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}
-                  >
-                    {t.is_available ? "Available" : "Not available"}
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                    {isBorrowed ? (
+                      <span>
+                        Borrowed{borrowedLabel ? ` by ${borrowedLabel}` : ""}
+                      </span>
+                    ) : t.is_available ? (
+                      "Available"
+                    ) : (
+                      "Not available"
+                    )}
                   </td>
 
-                  <td
-                    style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}
-                  >
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
                     <button
                       type="button"
                       onClick={() => toggleAvailability(t.id)}
-                      disabled={isUpdating || isDeleting}
+                      disabled={isUpdating || isDeleting || isBorrowed}
                       style={{ marginRight: "0.5rem" }}
+                      title={
+                        isBorrowed
+                          ? "This tool is currently borrowed. Use Owner Requests -> Return to make it available again."
+                          : undefined
+                      }
                     >
                       {isUpdating
                         ? "Updating..."
@@ -179,6 +191,12 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
                     >
                       {isDeleting ? "Deleting..." : "Delete"}
                     </button>
+
+                    {isBorrowed && (
+                      <div style={{ marginTop: "0.5rem", color: "#777" }}>
+                        Return is confirmed in <strong>Owner Requests</strong>.
+                      </div>
+                    )}
                   </td>
                 </tr>
               );
