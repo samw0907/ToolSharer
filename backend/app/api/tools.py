@@ -53,6 +53,28 @@ def list_tools(
 @router.get("/owner/{owner_id}", response_model=List[ToolRead])
 def list_tools_for_owner(owner_id: int, db: Session = Depends(get_db)):
     tools = db.query(Tool).filter(Tool.owner_id == owner_id).all()
+
+    tool_ids = [t.id for t in tools]
+    approved_rows = []
+    if tool_ids:
+        approved_rows = (
+            db.query(BorrowRequest.tool_id, User.id, User.email)
+            .join(User, User.id == BorrowRequest.borrower_id)
+            .filter(
+                BorrowRequest.tool_id.in_(tool_ids),
+                BorrowRequest.status == RequestStatus.APPROVED,
+            )
+            .all()
+        )
+
+    approved_map = {row[0]: {"user_id": row[1], "email": row[2]} for row in approved_rows}
+
+    for t in tools:
+        info = approved_map.get(t.id)
+        setattr(t, "is_borrowed", info is not None)
+        setattr(t, "borrowed_by_user_id", info["user_id"] if info else None)
+        setattr(t, "borrowed_by_email", info["email"] if info else None)
+
     return tools
 
 @router.post("/", response_model=ToolRead, status_code=201)
