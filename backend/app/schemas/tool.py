@@ -19,5 +19,9 @@ class ToolRead(ToolBase):
     has_pending_request: bool = False
     is_borrowing: bool = False
 
+    is_borrowed: bool = False
+    borrowed_by_user_id: int | None = None
+    borrowed_by_email: str | None = None
+
     class Config:
         from_attributes = True
