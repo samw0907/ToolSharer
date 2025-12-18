@@ -19,6 +19,11 @@ function App() {
   const [currentUserId, setCurrentUserId] = useState<number>(1);
   const [users, setUsers] = useState<User[]>([]);
   const [usersError, setUsersError] = useState<string | null>(null);
+  const [toolsReloadToken, setToolsReloadToken] = useState<number>(0);
+
+  function notifyToolsShouldReload() {
+    setToolsReloadToken((prev) => prev + 1);
+  }
 
   useEffect(() => {
     apiGet<User[]>("/users")
@@ -43,6 +48,7 @@ function App() {
     const value = Number(e.target.value);
     if (!Number.isNaN(value) && value > 0) {
       setCurrentUserId(value);
+      notifyToolsShouldReload();
     }
   }
 
@@ -149,9 +155,9 @@ function App() {
         </div>
       </header>
 
-      {view === "tools" && <ToolsPage currentUserId={currentUserId} />}
+      {view === "tools" && <ToolsPage currentUserId={currentUserId} reloadToken={toolsReloadToken}/>}
       {view === "ownerRequests" && <OwnerRequestsPage ownerId={currentUserId} />}
-      {view === "myRequests" && ( <BorrowerRequestsPage borrowerId={currentUserId} />)}
+      {view === "myRequests" && ( <BorrowerRequestsPage borrowerId={currentUserId} onRequestsChanged={notifyToolsShouldReload} />)}
       {view === "myTools" && <MyToolsPage ownerId={currentUserId} />}
     </div>
   );

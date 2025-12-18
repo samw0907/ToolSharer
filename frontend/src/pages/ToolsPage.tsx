@@ -26,10 +26,11 @@ interface BorrowRequest {
 
 interface ToolsPageProps {
   currentUserId: number;
+  reloadToken: number;
 }
 
 
-export default function ToolsPage({ currentUserId }: ToolsPageProps) {
+export default function ToolsPage({ currentUserId, reloadToken }: ToolsPageProps) {
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +55,7 @@ export default function ToolsPage({ currentUserId }: ToolsPageProps) {
 
   useEffect(() => {
     loadTools();
-  }, [currentUserId]);
+  }, [currentUserId, reloadToken]);
 
   function handleToolCreated(tool: Tool) {
     setTools((prev) => [...prev, tool]);

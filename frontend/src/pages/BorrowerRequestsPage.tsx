@@ -19,9 +19,10 @@ interface BorrowRequest {
 
 interface BorrowerRequestsPageProps {
   borrowerId: number;
+  onRequestsChanged?: () => void;
 }
 
-export default function BorrowerRequestsPage({ borrowerId }: BorrowerRequestsPageProps) {
+export default function BorrowerRequestsPage({ borrowerId, onRequestsChanged, }: BorrowerRequestsPageProps) {
   const [requests, setRequests] = useState<BorrowRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,11 +54,10 @@ export default function BorrowerRequestsPage({ borrowerId }: BorrowerRequestsPag
       setUpdatingId(requestId);
       setError(null);
 
-      // CHANGE: call backend cancel endpoint
       await apiPatch<BorrowRequest>(`/borrow_requests/${requestId}/cancel`);
-
-      // CHANGE: refresh list so status updates immediately
       await fetchRequests();
+
+      if (onRequestsChanged) onRequestsChanged();
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Failed to cancel request.");
