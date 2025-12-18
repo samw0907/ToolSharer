@@ -12,6 +12,7 @@ interface Tool {
   owner_id: number;
   is_available: boolean;
   has_pending_request?: boolean;
+  is_borrowing?: boolean;
 }
 
 interface BorrowRequest {
@@ -99,11 +100,13 @@ export default function ToolsPage({ currentUserId, reloadToken }: ToolsPageProps
           {tools.map((t) => {
             const isOwnTool = t.owner_id === currentUserId;
             const hasPending = Boolean(t.has_pending_request);
+            const isBorrowing = Boolean(t.is_borrowing);
             const isFormOpen = activeRequestToolId === t.id;
-            const canRequest = t.is_available && !isOwnTool && !hasPending;
+            const canRequest = t.is_available && !isOwnTool && !hasPending && !isBorrowing;
 
             let buttonLabel = "Request to borrow";
-            if (!t.is_available) buttonLabel = "Unavailable";
+            if (!t.is_available && isBorrowing) buttonLabel = "You're borrowing this";
+            else if (!t.is_available) buttonLabel = "Unavailable";
             else if (isOwnTool) buttonLabel = "Your tool";
             else if (hasPending) buttonLabel = "Request pending";
             else if (isFormOpen) buttonLabel = "Hide request form";
@@ -136,6 +139,12 @@ export default function ToolsPage({ currentUserId, reloadToken }: ToolsPageProps
                   >
                     {buttonLabel}
                   </button>
+                  
+                  {!t.is_available && isBorrowing && (
+                    <span style={{ marginLeft: "0.75rem", color: "#555" }}>
+                      (See “My Requests” for return status)
+                    </span>
+                  )}
                 </div>
 
                 {canRequest && isFormOpen && (

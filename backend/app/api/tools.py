@@ -34,8 +34,19 @@ def list_tools(
     )
     pending_set = {row[0] for row in pending_tool_ids}
 
+    approved_tool_ids = (
+        db.query(BorrowRequest.tool_id)
+        .filter(
+            BorrowRequest.borrower_id == current_user_id,
+            BorrowRequest.status == RequestStatus.APPROVED,
+        )
+        .all()
+    )
+    approved_set = {row[0] for row in approved_tool_ids}
+
     for t in tools:
         setattr(t, "has_pending_request", t.id in pending_set)
+        setattr(t, "is_borrowing", t.id in approved_set)
 
     return tools
 
