@@ -156,7 +156,7 @@ function App() {
       </header>
 
       {view === "tools" && <ToolsPage currentUserId={currentUserId} reloadToken={toolsReloadToken}/>}
-      {view === "ownerRequests" && <OwnerRequestsPage ownerId={currentUserId} />}
+      {view === "ownerRequests" && (<OwnerRequestsPage ownerId={currentUserId} onRequestsChanged={notifyToolsShouldReload} />)}
       {view === "myRequests" && ( <BorrowerRequestsPage borrowerId={currentUserId} onRequestsChanged={notifyToolsShouldReload} />)}
       {view === "myTools" && <MyToolsPage ownerId={currentUserId} />}
     </div>
