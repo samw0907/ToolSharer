@@ -27,9 +27,10 @@ interface BorrowRequest {
 
 interface OwnerRequestsPageProps {
   ownerId: number;
+  onRequestsChanged?: () => void;
 }
 
-export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
+export default function OwnerRequestsPage({ ownerId, onRequestsChanged }: OwnerRequestsPageProps) {
   const [requests, setRequests] = useState<BorrowRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,16 +60,21 @@ export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
   async function updateStatus(requestId: number, action: "approve" | "decline") {
     try {
       setUpdatingId(requestId);
+      setError(null);
+
       const updated = await apiPatch<BorrowRequest>(
         `/borrow_requests/${requestId}/${action}`
       );
 
       if (action === "approve") {
         await fetchRequests();
+        if (onRequestsChanged) onRequestsChanged();
         return;
       }
 
       setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+
+      if (onRequestsChanged) onRequestsChanged();
     } catch (err) {
       console.error(err);
       setError("Failed to update request status.");
@@ -80,8 +86,12 @@ export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
   async function returnTool(requestId: number) {
     try {
       setUpdatingId(requestId);
+      setError(null); 
+
       await apiPatch<BorrowRequest>(`/borrow_requests/${requestId}/return`);
       await fetchRequests();
+
+      if (onRequestsChanged) onRequestsChanged();
     } catch (err) {
       console.error(err);
       setError("Failed to return tool.");
@@ -99,121 +109,102 @@ export default function OwnerRequestsPage({ ownerId }: OwnerRequestsPageProps) {
     );
   }
 
-  if (error) {
-    return (
-      <div style={{ padding: "2rem" }}>
-        <h2>Incoming Borrow Requests</h2>
-        <p style={{ color: "red" }}>{error}</p>
-      </div>
-    );
-  }
-
-  if (requests.length === 0) {
-    return (
-      <div style={{ padding: "2rem" }}>
-        <h2>Incoming Borrow Requests</h2>
-        <p>No incoming requests for your tools yet.</p>
-      </div>
-    );
-  }
-
   return (
     <div style={{ padding: "2rem" }}>
       <h2>Incoming Borrow Requests</h2>
 
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          marginTop: "1rem",
-          textAlign: "left",
-        }}
-      >
-        <thead>
-          <tr>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Tool
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Borrower
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Message
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Status
-            </th>
-            <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {requests.map((r) => {
-            const isPending = r.status === "PENDING";
-            const isApproved = r.status === "APPROVED";
-            const isUpdating = updatingId === r.id;
+      {error && (
+        <div
+          style={{
+            marginTop: "0.75rem",
+            marginBottom: "0.75rem",
+            padding: "0.75rem",
+            border: "1px solid #d32f2f",
+            borderRadius: "4px",
+            backgroundColor: "#fff5f5",
+            color: "#d32f2f",
+          }}
+        >
+          {error}
+        </div>
+      )}
 
-            const toolLabel = r.tool?.name ?? `Tool #${r.tool_id}`;
-            const borrowerLabel = r.borrower?.email ?? `User #${r.borrower_id}`;
+      {requests.length === 0 ? (
+        <p>No incoming requests for your tools yet.</p>
+      ) : (
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            marginTop: "1rem",
+            textAlign: "left",
+          }}
+        >
+          <thead>
+            <tr>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Tool</th>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Borrower</th>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Message</th>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Status</th>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {requests.map((r) => {
+              const isPending = r.status === "PENDING";
+              const isApproved = r.status === "APPROVED";
+              const isUpdating = updatingId === r.id;
 
-            return (
-              <tr key={r.id}>
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  {toolLabel}
-                </td>
+              const toolLabel = r.tool?.name ?? `Tool #${r.tool_id}`;
+              const borrowerLabel = r.borrower?.email ?? `User #${r.borrower_id}`;
 
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  {borrowerLabel}
-                </td>
-
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  {r.message || (
-                    <span style={{ fontStyle: "italic", color: "#666" }}>
-                      No message
-                    </span>
-                  )}
-                </td>
-
-                <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                  {r.status}
-                </td>
-
-                <td
-                  style={{
-                    borderBottom: "1px solid #eee",
-                    padding: "0.5rem",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => updateStatus(r.id, "approve")}
-                    disabled={!isPending || isUpdating}
-                    style={{ marginRight: "0.5rem" }}
+              return (
+                <tr key={r.id}>
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{toolLabel}</td>
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{borrowerLabel}</td>
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                    {r.message || (
+                      <span style={{ fontStyle: "italic", color: "#666" }}>No message</span>
+                    )}
+                  </td>
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{r.status}</td>
+                  <td
+                    style={{
+                      borderBottom: "1px solid #eee",
+                      padding: "0.5rem",
+                      whiteSpace: "nowrap",
+                    }}
                   >
-                    Approve
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => updateStatus(r.id, "decline")}
-                    disabled={!isPending || isUpdating}
-                  >
-                    Decline
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => returnTool(r.id)}
-                    disabled={!isApproved || isUpdating}
-                  >
-                    Return
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                    <button
+                      type="button"
+                      onClick={() => updateStatus(r.id, "approve")}
+                      disabled={!isPending || isUpdating}
+                      style={{ marginRight: "0.5rem" }}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateStatus(r.id, "decline")}
+                      disabled={!isPending || isUpdating}
+                      style={{ marginRight: "0.5rem" }}
+                    >
+                      Decline
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => returnTool(r.id)}
+                      disabled={!isApproved || isUpdating}
+                    >
+                      Return
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
