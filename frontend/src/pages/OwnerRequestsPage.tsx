@@ -153,7 +153,8 @@ export default function OwnerRequestsPage({ ownerId, onRequestsChanged }: OwnerR
             {requests.map((r) => {
               const isPending = r.status === "PENDING";
               const isApproved = r.status === "APPROVED";
-              const isUpdating = updatingId === r.id;
+              const isUpdatingRow = updatingId === r.id;
+              const disableActions = updatingId !== null;
 
               const toolLabel = r.tool?.name ?? `Tool #${r.tool_id}`;
               const borrowerLabel = r.borrower?.email ?? `User #${r.borrower_id}`;
@@ -178,25 +179,25 @@ export default function OwnerRequestsPage({ ownerId, onRequestsChanged }: OwnerR
                     <button
                       type="button"
                       onClick={() => updateStatus(r.id, "approve")}
-                      disabled={!isPending || isUpdating}
+                      disabled={!isPending || disableActions} 
                       style={{ marginRight: "0.5rem" }}
                     >
-                      Approve
+                      {isUpdatingRow ? "Working..." : "Approve"}
                     </button>
                     <button
                       type="button"
                       onClick={() => updateStatus(r.id, "decline")}
-                      disabled={!isPending || isUpdating}
+                      disabled={!isPending || disableActions} 
                       style={{ marginRight: "0.5rem" }}
                     >
-                      Decline
+                      {isUpdatingRow ? "Working..." : "Decline"}
                     </button>
                     <button
                       type="button"
                       onClick={() => returnTool(r.id)}
-                      disabled={!isApproved || isUpdating}
+                      disabled={!isApproved || disableActions}
                     >
-                      Return
+                      {isUpdatingRow ? "Working..." : "Return"} 
                     </button>
                   </td>
                 </tr>

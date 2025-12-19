@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiGet, apiPatch } from "../lib/api";
 
 interface ToolMini {
@@ -66,6 +66,101 @@ export default function BorrowerRequestsPage({ borrowerId, onRequestsChanged, }:
     }
   }
 
+  const grouped = useMemo(() => {
+    const borrowing = requests.filter((r) => r.status === "APPROVED");
+    const pending = requests.filter((r) => r.status === "PENDING");
+    const history = requests.filter(
+      (r) =>
+        r.status === "DECLINED" ||
+        r.status === "CANCELLED" ||
+        r.status === "RETURNED"
+    );
+
+    return { borrowing, pending, history };
+  }, [requests]);
+
+  function RequestsTable({
+    rows,
+    showActions,
+  }: {
+    rows: BorrowRequest[];
+    showActions: boolean;
+  }) {
+    if (rows.length === 0) {
+      return <p style={{ color: "#aaa" }}>None.</p>;
+    }
+
+    return (
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          marginTop: "0.75rem",
+          textAlign: "left",
+        }}
+      >
+        <thead>
+          <tr>
+            <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+              Tool
+            </th>
+            <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+              Message
+            </th>
+            <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+              Status
+            </th>
+            <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+              Actions
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {rows.map((r) => {
+            const toolLabel = r.tool?.name ?? `Tool #${r.tool_id}`;
+            const isPending = r.status === "PENDING";
+            const isUpdating = updatingId === r.id;
+
+            return (
+              <tr key={r.id}>
+                <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                  {toolLabel}
+                </td>
+
+                <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                  {r.message || (
+                    <span style={{ fontStyle: "italic", color: "#aaa" }}>
+                      No message
+                    </span>
+                  )}
+                </td>
+
+                <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                  {r.status}
+                </td>
+
+                <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                  {showActions ? (
+                    <button
+                      type="button"
+                      onClick={() => cancelRequest(r.id)}
+                      disabled={!isPending || isUpdating}
+                    >
+                      {isUpdating ? "Cancelling..." : "Cancel"}
+                    </button>
+                  ) : (
+                    <span style={{ color: "#777" }}>—</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    );
+  }
+
   if (loading) {
     return (
       <div style={{ padding: "2rem" }}>
@@ -87,8 +182,8 @@ export default function BorrowerRequestsPage({ borrowerId, onRequestsChanged, }:
             padding: "0.75rem",
             border: "1px solid #d32f2f",
             borderRadius: "4px",
-            backgroundColor: "#fff5f5",
-            color: "#d32f2f",
+            backgroundColor: "transparent",
+            color: "#ff6b6b",
           }}
         >
           {error}
@@ -98,57 +193,44 @@ export default function BorrowerRequestsPage({ borrowerId, onRequestsChanged, }:
       {requests.length === 0 ? (
         <p>You haven’t made any requests yet.</p>
       ) : (
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginTop: "1rem",
-            textAlign: "left",
-          }}
-        >
-          <thead>
-            <tr>
-              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Tool</th>
-              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Message</th>
-              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Status</th>
-              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {requests.map((r) => {
-              const toolLabel = r.tool?.name ?? `Tool #${r.tool_id}`;
-              const isPending = r.status === "PENDING";
-              const isUpdating = updatingId === r.id;
-
-              return (
-                <tr key={r.id}>
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                    {toolLabel}
-                  </td>
-
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                    {r.message || <span style={{ fontStyle: "italic", color: "#666" }}>No message</span>}
-                  </td>
-
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                    {r.status}
-                  </td>
-
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                    <button
-                      type="button"
-                      onClick={() => cancelRequest(r.id)}
-                      disabled={!isPending || isUpdating}
-                    >
-                      {isUpdating ? "Cancelling..." : "Cancel"}
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <>
+          <div
+            style={{
+              border: "1px solid #444",
+              borderRadius: "6px",
+              padding: "1rem",
+              marginTop: "1rem",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>Currently Borrowing</h3>
+            <RequestsTable rows={grouped.borrowing} showActions={false} />
+            <p style={{ color: "#aaa", marginTop: "0.75rem" }}>
+              Returns are confirmed by the tool owner.
+            </p>
+          </div>
+          <div
+            style={{
+              border: "1px solid #444",
+              borderRadius: "6px",
+              padding: "1rem",
+              marginTop: "1rem",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>Pending Requests</h3>
+            <RequestsTable rows={grouped.pending} showActions={true} />
+          </div>
+          <div
+            style={{
+              border: "1px solid #444",
+              borderRadius: "6px",
+              padding: "1rem",
+              marginTop: "1rem",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>History</h3>
+            <RequestsTable rows={grouped.history} showActions={false} />
+          </div>
+        </>
       )}
     </div>
   );
