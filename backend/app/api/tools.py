@@ -102,6 +102,20 @@ def toggle_tool_availability(tool_id: int, db: Session = Depends(get_db)):
     if not tool:
         raise HTTPException(status_code=404, detail="Tool not found")
 
+    approved_exists = (
+        db.query(func.count(BorrowRequest.id))
+        .filter(
+            BorrowRequest.tool_id == tool_id,
+            BorrowRequest.status == RequestStatus.APPROVED,
+        )
+        .scalar()
+    )
+    if approved_exists and approved_exists > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot change availability while this tool is currently borrowed. Use Owner Requests -> Return.",
+        )
+
     tool.is_available = not tool.is_available
     db.commit()
     db.refresh(tool)
