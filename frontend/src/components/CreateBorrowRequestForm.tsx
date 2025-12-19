@@ -1,5 +1,4 @@
-// src/components/CreateBorrowRequestForm.tsx
-import { FormEvent, useMemo, useState } from "react"; // CHANGE: added useMemo
+import { FormEvent, useMemo, useState } from "react";
 import { apiPost } from "../lib/api";
 
 interface BorrowRequest {
@@ -10,8 +9,6 @@ interface BorrowRequest {
   status: string;
   created_at: string;
   updated_at: string;
-
-  // CHANGE: dates returned by backend (optional to avoid breaking anything)
   start_date?: string | null;
   due_date?: string | null;
 }
@@ -23,7 +20,6 @@ interface CreateBorrowRequestFormProps {
   onCancel?: () => void;
 }
 
-// CHANGE: helper to format YYYY-MM-DD for <input type="date">
 function toDateInputValue(d: Date) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -40,8 +36,6 @@ export default function CreateBorrowRequestForm({
   const [message, setMessage] = useState("Could I borrow this tool, please?");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // CHANGE: default dates (today -> today + 7 days)
   const defaults = useMemo(() => {
     const start = new Date();
     const due = new Date();
@@ -53,7 +47,6 @@ export default function CreateBorrowRequestForm({
     };
   }, []);
 
-  // CHANGE: state for date fields
   const [startDate, setStartDate] = useState<string>(defaults.start);
   const [dueDate, setDueDate] = useState<string>(defaults.due);
 
@@ -62,7 +55,7 @@ export default function CreateBorrowRequestForm({
     setSubmitting(true);
     setError(null);
 
-    // CHANGE: simple client-side validation
+    // client-side validation
     if (dueDate < startDate) {
       setSubmitting(false);
       setError("Due date cannot be before start date.");
@@ -74,8 +67,6 @@ export default function CreateBorrowRequestForm({
         tool_id: toolId,
         borrower_id: borrowerId,
         message,
-
-        // CHANGE: send dates (backend expects these now)
         start_date: startDate,
         due_date: dueDate,
       };
@@ -100,12 +91,12 @@ export default function CreateBorrowRequestForm({
       style={{
         marginTop: "0.5rem",
         padding: "0.75rem",
-        border: "1px solid #ddd",
-        borderRadius: "4px",
-        backgroundColor: "#fafafa",
+        border: "1px solid #444",
+        borderRadius: "6px",
+        backgroundColor: "#1a1a1a",
+        color: "#fff",
       }}
     >
-      {/* CHANGE: start/due date inputs */}
       <div
         style={{
           display: "grid",
@@ -114,7 +105,7 @@ export default function CreateBorrowRequestForm({
           marginBottom: "0.75rem",
         }}
       >
-        <label>
+        <label style={{ color: "#fff" }}>
           Start date
           <br />
           <input
@@ -122,10 +113,19 @@ export default function CreateBorrowRequestForm({
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             required
+            style={{
+              width: "100%",
+              marginTop: "0.25rem",
+              padding: "0.4rem 0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #555",
+              backgroundColor: "#111",
+              color: "#fff",
+            }}
           />
         </label>
 
-        <label>
+        <label style={{ color: "#fff" }}>
           Due date
           <br />
           <input
@@ -133,25 +133,42 @@ export default function CreateBorrowRequestForm({
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             required
+            style={{
+              width: "100%",
+              marginTop: "0.25rem",
+              padding: "0.4rem 0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #555",
+              backgroundColor: "#111",
+              color: "#fff",
+            }}
           />
         </label>
       </div>
 
       <div style={{ marginBottom: "0.5rem" }}>
-        <label>
+        <label style={{ color: "#fff" }}>
           Message
           <br />
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={3}
-            style={{ width: "100%" }}
+            style={{
+              width: "100%",
+              marginTop: "0.25rem",
+              padding: "0.5rem",
+              borderRadius: "4px",
+              border: "1px solid #555",
+              backgroundColor: "#111",
+              color: "#fff",
+            }}
           />
         </label>
       </div>
 
       {error && (
-        <p style={{ color: "red", marginBottom: "0.5rem" }}>{error}</p>
+        <p style={{ color: "#ff6b6b", marginBottom: "0.5rem" }}>{error}</p>
       )}
 
       <div style={{ display: "flex", gap: "0.5rem" }}>
