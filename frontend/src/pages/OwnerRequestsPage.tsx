@@ -21,6 +21,11 @@ interface BorrowRequest {
   status: "PENDING" | "APPROVED" | "DECLINED" | "CANCELLED" | "RETURNED";
   created_at: string;
   updated_at: string;
+
+  // CHANGE: dates (returned as YYYY-MM-DD or null)
+  start_date?: string | null;
+  due_date?: string | null;
+
   tool?: ToolMini | null;
   borrower?: UserMini | null;
 }
@@ -30,7 +35,16 @@ interface OwnerRequestsPageProps {
   onRequestsChanged?: () => void;
 }
 
-export default function OwnerRequestsPage({ ownerId, onRequestsChanged }: OwnerRequestsPageProps) {
+// CHANGE: format helper
+function formatDate(value?: string | null): string {
+  if (!value) return "—";
+  return value;
+}
+
+export default function OwnerRequestsPage({
+  ownerId,
+  onRequestsChanged,
+}: OwnerRequestsPageProps) {
   const [requests, setRequests] = useState<BorrowRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,9 +53,7 @@ export default function OwnerRequestsPage({ ownerId, onRequestsChanged }: OwnerR
   async function fetchRequests() {
     try {
       setLoading(true);
-      const data = await apiGet<BorrowRequest[]>(
-        `/borrow_requests/owner/${ownerId}`
-      );
+      const data = await apiGet<BorrowRequest[]>(`/borrow_requests/owner/${ownerId}`);
       setRequests(data);
       setError(null);
     } catch (err) {
@@ -56,15 +68,12 @@ export default function OwnerRequestsPage({ ownerId, onRequestsChanged }: OwnerR
     fetchRequests();
   }, [ownerId]);
 
-
   async function updateStatus(requestId: number, action: "approve" | "decline") {
     try {
       setUpdatingId(requestId);
       setError(null);
 
-      const updated = await apiPatch<BorrowRequest>(
-        `/borrow_requests/${requestId}/${action}`
-      );
+      const updated = await apiPatch<BorrowRequest>(`/borrow_requests/${requestId}/${action}`);
 
       if (action === "approve") {
         await fetchRequests();
@@ -86,7 +95,7 @@ export default function OwnerRequestsPage({ ownerId, onRequestsChanged }: OwnerR
   async function returnTool(requestId: number) {
     try {
       setUpdatingId(requestId);
-      setError(null); 
+      setError(null);
 
       await apiPatch<BorrowRequest>(`/borrow_requests/${requestId}/return`);
       await fetchRequests();
@@ -121,8 +130,8 @@ export default function OwnerRequestsPage({ ownerId, onRequestsChanged }: OwnerR
             padding: "0.75rem",
             border: "1px solid #d32f2f",
             borderRadius: "4px",
-            backgroundColor: "#fff5f5",
-            color: "#d32f2f",
+            backgroundColor: "transparent", // CHANGE: dark-theme friendly
+            color: "#ff6b6b", // CHANGE: dark-theme friendly
           }}
         >
           {error}
@@ -142,13 +151,33 @@ export default function OwnerRequestsPage({ ownerId, onRequestsChanged }: OwnerR
         >
           <thead>
             <tr>
-              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Tool</th>
-              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Borrower</th>
-              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Message</th>
-              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Status</th>
-              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>Actions</th>
+              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+                Tool
+              </th>
+              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+                Borrower
+              </th>
+
+              {/* CHANGE: Start + Due columns */}
+              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+                Start
+              </th>
+              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+                Due
+              </th>
+
+              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+                Message
+              </th>
+              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+                Status
+              </th>
+              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+                Actions
+              </th>
             </tr>
           </thead>
+
           <tbody>
             {requests.map((r) => {
               const isPending = r.status === "PENDING";
@@ -161,17 +190,34 @@ export default function OwnerRequestsPage({ ownerId, onRequestsChanged }: OwnerR
 
               return (
                 <tr key={r.id}>
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{toolLabel}</td>
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{borrowerLabel}</td>
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {toolLabel}
+                  </td>
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {borrowerLabel}
+                  </td>
+
+                  {/* CHANGE: show dates */}
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {formatDate(r.start_date)}
+                  </td>
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {formatDate(r.due_date)}
+                  </td>
+
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
                     {r.message || (
-                      <span style={{ fontStyle: "italic", color: "#666" }}>No message</span>
+                      <span style={{ fontStyle: "italic", color: "#aaa" }}>
+                        No message
+                      </span>
                     )}
                   </td>
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>{r.status}</td>
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {r.status}
+                  </td>
                   <td
                     style={{
-                      borderBottom: "1px solid #eee",
+                      borderBottom: "1px solid #333",
                       padding: "0.5rem",
                       whiteSpace: "nowrap",
                     }}
@@ -179,25 +225,27 @@ export default function OwnerRequestsPage({ ownerId, onRequestsChanged }: OwnerR
                     <button
                       type="button"
                       onClick={() => updateStatus(r.id, "approve")}
-                      disabled={!isPending || disableActions} 
+                      disabled={!isPending || disableActions}
                       style={{ marginRight: "0.5rem" }}
                     >
                       {isUpdatingRow ? "Working..." : "Approve"}
                     </button>
+
                     <button
                       type="button"
                       onClick={() => updateStatus(r.id, "decline")}
-                      disabled={!isPending || disableActions} 
+                      disabled={!isPending || disableActions}
                       style={{ marginRight: "0.5rem" }}
                     >
                       {isUpdatingRow ? "Working..." : "Decline"}
                     </button>
+
                     <button
                       type="button"
                       onClick={() => returnTool(r.id)}
                       disabled={!isApproved || disableActions}
                     >
-                      {isUpdatingRow ? "Working..." : "Return"} 
+                      {isUpdatingRow ? "Working..." : "Return"}
                     </button>
                   </td>
                 </tr>

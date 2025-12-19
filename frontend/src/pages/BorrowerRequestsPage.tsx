@@ -14,6 +14,11 @@ interface BorrowRequest {
   status: "PENDING" | "APPROVED" | "DECLINED" | "CANCELLED" | "RETURNED";
   created_at: string;
   updated_at: string;
+
+  // CHANGE: dates (returned as YYYY-MM-DD or null)
+  start_date?: string | null;
+  due_date?: string | null;
+
   tool?: ToolMini | null;
 }
 
@@ -22,7 +27,17 @@ interface BorrowerRequestsPageProps {
   onRequestsChanged?: () => void;
 }
 
-export default function BorrowerRequestsPage({ borrowerId, onRequestsChanged, }: BorrowerRequestsPageProps) {
+// CHANGE: format helper (keeps it simple + readable)
+function formatDate(value?: string | null): string {
+  if (!value) return "—";
+  // value is already YYYY-MM-DD from backend
+  return value;
+}
+
+export default function BorrowerRequestsPage({
+  borrowerId,
+  onRequestsChanged,
+}: BorrowerRequestsPageProps) {
   const [requests, setRequests] = useState<BorrowRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +46,9 @@ export default function BorrowerRequestsPage({ borrowerId, onRequestsChanged, }:
   async function fetchRequests() {
     try {
       setLoading(true);
-      const data = await apiGet<BorrowRequest[]>(`/borrow_requests/borrower/${borrowerId}`);
+      const data = await apiGet<BorrowRequest[]>(
+        `/borrow_requests/borrower/${borrowerId}`
+      );
       setRequests(data);
       setError(null);
     } catch (err) {
@@ -104,6 +121,15 @@ export default function BorrowerRequestsPage({ borrowerId, onRequestsChanged, }:
             <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
               Tool
             </th>
+
+            {/* CHANGE: Start + Due columns */}
+            <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+              Start
+            </th>
+            <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+              Due
+            </th>
+
             <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
               Message
             </th>
@@ -126,6 +152,14 @@ export default function BorrowerRequestsPage({ borrowerId, onRequestsChanged, }:
               <tr key={r.id}>
                 <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
                   {toolLabel}
+                </td>
+
+                {/* CHANGE: show dates */}
+                <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                  {formatDate(r.start_date)}
+                </td>
+                <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                  {formatDate(r.due_date)}
                 </td>
 
                 <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
@@ -208,6 +242,7 @@ export default function BorrowerRequestsPage({ borrowerId, onRequestsChanged, }:
               Returns are confirmed by the tool owner.
             </p>
           </div>
+
           <div
             style={{
               border: "1px solid #444",
@@ -219,6 +254,7 @@ export default function BorrowerRequestsPage({ borrowerId, onRequestsChanged, }:
             <h3 style={{ marginTop: 0 }}>Pending Requests</h3>
             <RequestsTable rows={grouped.pending} showActions={true} />
           </div>
+
           <div
             style={{
               border: "1px solid #444",

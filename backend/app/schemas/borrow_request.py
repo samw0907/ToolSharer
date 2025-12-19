@@ -1,7 +1,9 @@
 # app/schemas/borrow_request.py
-from datetime import datetime
+from datetime import date, datetime
+from typing import Optional
 
 from pydantic import BaseModel
+from pydantic import model_validator
 
 from app.models.borrow_request import RequestStatus
 
@@ -29,18 +31,31 @@ class BorrowRequestBase(BaseModel):
 
 
 class BorrowRequestCreate(BorrowRequestBase):
-    pass
+    start_date: date
+    due_date: date
+
+    @model_validator(mode="after")
+    def validate_dates(self):
+        if self.due_date < self.start_date:
+            raise ValueError("due_date cannot be before start_date")
+        return self
 
 
 class BorrowRequestRead(BorrowRequestBase):
     id: int
+    tool_id: int
+    borrower_id: int
+    message: Optional[str] = None
     status: RequestStatus
+
+    start_date: Optional[date] = None
+    due_date: Optional[date] = None
+
     created_at: datetime
     updated_at: datetime
 
-    tool: BorrowRequestToolRead | None = None
-    borrower: BorrowRequestUserRead | None = None
-
+    tool: Optional[BorrowRequestToolRead] = None
+    borrower: Optional[BorrowRequestUserRead] = None
 
     class Config:
         from_attributes = True

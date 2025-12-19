@@ -83,6 +83,8 @@ def create_request(payload: BorrowRequestCreate, db: Session = Depends(get_db)):
         borrower_id=payload.borrower_id,
         message=payload.message,
         status=RequestStatus.PENDING,
+        start_date=payload.start_date,
+        due_date=payload.due_date,
     )
 
     db.add(req)

@@ -1,7 +1,7 @@
 # app/models/borrow_request.py
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, Text
+from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -25,6 +25,10 @@ class BorrowRequest(Base):
     borrower_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     message = Column(Text, nullable=True)
+
+    start_date = Column(Date, nullable=True)
+    due_date = Column(Date, nullable=True)
+
     status = Column(
         Enum(RequestStatus, name="request_status"),
         nullable=False,
