@@ -14,12 +14,13 @@ interface BorrowRequest {
   status: "PENDING" | "APPROVED" | "DECLINED" | "CANCELLED" | "RETURNED";
   created_at: string;
   updated_at: string;
+  tool?: ToolMini | null;
 
-  // CHANGE: dates (returned as YYYY-MM-DD or null)
   start_date?: string | null;
   due_date?: string | null;
-
-  tool?: ToolMini | null;
+  is_overdue?: boolean;
+  days_overdue?: number;
+  days_until_due?: number;
 }
 
 interface BorrowerRequestsPageProps {
@@ -27,10 +28,8 @@ interface BorrowerRequestsPageProps {
   onRequestsChanged?: () => void;
 }
 
-// CHANGE: format helper (keeps it simple + readable)
 function formatDate(value?: string | null): string {
   if (!value) return "—";
-  // value is already YYYY-MM-DD from backend
   return value;
 }
 
@@ -121,8 +120,6 @@ export default function BorrowerRequestsPage({
             <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
               Tool
             </th>
-
-            {/* CHANGE: Start + Due columns */}
             <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
               Start
             </th>
@@ -148,30 +145,57 @@ export default function BorrowerRequestsPage({
             const isPending = r.status === "PENDING";
             const isUpdating = updatingId === r.id;
 
+            const dateLabel =
+              r.start_date && r.due_date
+                ? `${r.start_date} → ${r.due_date}`
+                : "—";
+
+            const isOverdue = Boolean(r.is_overdue);
+            const daysOverdue = r.days_overdue ?? 0;
+            const daysUntilDue = r.days_until_due ?? 0;
+
             return (
               <tr key={r.id}>
                 <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
                   {toolLabel}
-                </td>
-
-                {/* CHANGE: show dates */}
-                <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
-                  {formatDate(r.start_date)}
-                </td>
-                <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
-                  {formatDate(r.due_date)}
+                  <div style={{ color: "#aaa", marginTop: "0.25rem" }}>
+                    {r.message || (
+                      <span style={{ fontStyle: "italic" }}>No message</span>
+                    )}
+                  </div>
                 </td>
 
                 <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
-                  {r.message || (
-                    <span style={{ fontStyle: "italic", color: "#aaa" }}>
-                      No message
-                    </span>
+                  {dateLabel}
+                  {r.status === "APPROVED" && r.due_date && (
+                    <div style={{ marginTop: "0.25rem", color: "#aaa" }}>
+                      {isOverdue
+                        ? null
+                        : daysUntilDue === 0
+                        ? "Due today"
+                        : `Due in ${daysUntilDue} day${daysUntilDue === 1 ? "" : "s"}`}
+                    </div>
                   )}
                 </td>
 
                 <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
-                  {r.status}
+                  {r.status}{" "}
+                  {isOverdue && (
+                    <span
+                      style={{
+                        marginLeft: "0.5rem",
+                        padding: "0.15rem 0.4rem",
+                        borderRadius: "4px",
+                        border: "1px solid #ff6b6b",
+                        color: "#ff6b6b",
+                        fontWeight: 600,
+                        fontSize: "0.85rem",
+                      }}
+                      title={`Overdue by ${daysOverdue} day(s)`}
+                    >
+                      OVERDUE ({daysOverdue})
+                    </span>
+                  )}
                 </td>
 
                 <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>

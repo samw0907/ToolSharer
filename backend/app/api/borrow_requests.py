@@ -1,5 +1,6 @@
 # app/api/borrow_requests.py
 from typing import List
+from datetime import date 
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
@@ -44,8 +45,9 @@ def list_requests(db: Session = Depends(get_db)):
         .all()
     )
 
-        for r in requests:
+    for r in requests:
         _annotate_overdue_fields(r)
+
     return requests
 
 
@@ -60,7 +62,7 @@ def list_requests_for_owner(owner_id: int, db: Session = Depends(get_db)):
         .all()
     )
 
-        for r in requests:
+    for r in requests:
         _annotate_overdue_fields(r)
 
     return requests
@@ -75,7 +77,7 @@ def list_requests_for_borrower(borrower_id: int, db: Session = Depends(get_db)):
         .all()
     )
 
-        for r in requests:
+    for r in requests:
         _annotate_overdue_fields(r)
 
     return requests
