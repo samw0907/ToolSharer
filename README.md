@@ -5,14 +5,14 @@ The application is built with a modern AWS-focused architecture to demonstrate f
 
 
 ## High-Level Features (Planned)
-- User authentication and identity management via **OAuth2 / OpenID Connect with Amazon Cognito**
+- User authentication and identity management via OAuth2 / OpenID Connect with Amazon Cognito
 - Users can list tools they own, set availability, upload images
 - Search tools by location, category, availability window
 - Booking flow: request → owner accepts → track status
 - Geospatial searching (radius or map-based) — Phase 2
-- Background processing (e.g., notifications) using **AWS SQS**
-- Secure media uploads to **Amazon S3**
-- Deployment to **AWS ECS Fargate**
+- Background processing (e.g., notifications) using AWS SQS
+- Secure media uploads to Amazon S3
+- Deployment to AWS ECS Fargate
 
 ## Tech Stack
 
@@ -20,7 +20,7 @@ The application is built with a modern AWS-focused architecture to demonstrate f
 - React + TypeScript
 - Vite for dev/build tooling
 - React Router
-- **CSS (no Tailwind)**
+- CSS
 - Token handling for OAuth2/OIDC (Auth Code + PKCE)
 
 ### Backend

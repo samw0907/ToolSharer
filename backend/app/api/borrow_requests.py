@@ -12,6 +12,29 @@ from app.schemas.borrow_request import BorrowRequestCreate, BorrowRequestRead
 
 router = APIRouter(prefix="/borrow_requests", tags=["borrow_requests"])
 
+def _annotate_overdue_fields(req: BorrowRequest) -> None:
+    today = date.today()
+
+    is_overdue = (
+        req.status == RequestStatus.APPROVED
+        and req.due_date is not None
+        and req.due_date < today
+    )
+
+    days_overdue = 0
+    days_until_due = 0
+
+    if req.due_date is not None:
+        if is_overdue:
+            days_overdue = (today - req.due_date).days
+            days_until_due = 0
+        else:
+            delta = (req.due_date - today).days
+            days_until_due = delta if delta > 0 else 0
+
+    setattr(req, "is_overdue", bool(is_overdue))
+    setattr(req, "days_overdue", int(days_overdue))
+    setattr(req, "days_until_due", int(days_until_due))
 
 @router.get("/", response_model=List[BorrowRequestRead])
 def list_requests(db: Session = Depends(get_db)):
@@ -20,6 +43,9 @@ def list_requests(db: Session = Depends(get_db)):
         .options(joinedload(BorrowRequest.tool), joinedload(BorrowRequest.borrower))
         .all()
     )
+
+        for r in requests:
+        _annotate_overdue_fields(r)
     return requests
 
 
@@ -33,6 +59,10 @@ def list_requests_for_owner(owner_id: int, db: Session = Depends(get_db)):
         .order_by(BorrowRequest.created_at.desc())
         .all()
     )
+
+        for r in requests:
+        _annotate_overdue_fields(r)
+
     return requests
 
 @router.get("/borrower/{borrower_id}", response_model=List[BorrowRequestRead])
@@ -44,6 +74,10 @@ def list_requests_for_borrower(borrower_id: int, db: Session = Depends(get_db)):
         .order_by(BorrowRequest.created_at.desc())
         .all()
     )
+
+        for r in requests:
+        _annotate_overdue_fields(r)
+
     return requests
     
 @router.post("/", response_model=BorrowRequestRead, status_code=201)
@@ -90,6 +124,9 @@ def create_request(payload: BorrowRequestCreate, db: Session = Depends(get_db)):
     db.add(req)
     db.commit()
     db.refresh(req)
+
+    _annotate_overdue_fields(req)
+
     return req
 
 
@@ -132,6 +169,9 @@ def approve_request(request_id: int, db: Session = Depends(get_db)):
 
     db.commit()
     db.refresh(borrow_request)
+
+    _annotate_overdue_fields(borrow_request)
+
     return borrow_request
 
 @router.patch("/{request_id}/decline", response_model=BorrowRequestRead)
@@ -146,6 +186,9 @@ def decline_request(request_id: int, db: Session = Depends(get_db)):
     borrow_request.status = RequestStatus.DECLINED
     db.commit()
     db.refresh(borrow_request)
+
+    _annotate_overdue_fields(borrow_request)
+
     return borrow_request
 
 
@@ -162,6 +205,9 @@ def cancel_request(request_id: int, db: Session = Depends(get_db)):
     borrow_request.status = RequestStatus.CANCELLED
     db.commit()
     db.refresh(borrow_request)
+
+    _annotate_overdue_fields(borrow_request)
+
     return borrow_request
 
 @router.patch("/{request_id}/return", response_model=BorrowRequestRead)
@@ -183,4 +229,7 @@ def return_tool(request_id: int, db: Session = Depends(get_db)):
 
     db.commit()
     db.refresh(borrow_request)
+
+    _annotate_overdue_fields(borrow_request)
+
     return borrow_request

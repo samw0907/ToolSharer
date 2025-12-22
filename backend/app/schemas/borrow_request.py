@@ -57,5 +57,9 @@ class BorrowRequestRead(BorrowRequestBase):
     tool: Optional[BorrowRequestToolRead] = None
     borrower: Optional[BorrowRequestUserRead] = None
 
+    is_overdue: bool = False
+    days_overdue: int = 0
+    days_until_due: int = 0
+
     class Config:
         from_attributes = True
