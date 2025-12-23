@@ -5,7 +5,6 @@ It provides authentication integration, resource APIs, booking logic, background
 
 ## Tech Stack
 
-### Core
 - Python 3.12+
 - FastAPI
 - PostgreSQL (via AWS RDS)
