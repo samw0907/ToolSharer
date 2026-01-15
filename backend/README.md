@@ -31,3 +31,4 @@ It provides authentication integration, resource APIs, booking logic, background
 - `/tools/search` – Location/category based search
 - `/bookings` – Create/approve/reject bookings
 - `/notifications` – (event-based, SQS triggered)
+
