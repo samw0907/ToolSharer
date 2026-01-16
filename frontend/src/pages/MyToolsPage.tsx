@@ -174,16 +174,16 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
               <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
                 Location
               </th>
-              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
                 Borrow Status
               </th>
-              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
                 Start
               </th>
-              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
                 Due
               </th>
-              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
                 Due status
               </th>
               <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
@@ -224,15 +224,15 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
                     )}
                   </td>
 
-                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
                     {formatDate(t.borrowed_start_date)}
                   </td>
 
-                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
                     {formatDate(t.borrowed_due_date)}
                   </td>
 
-                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
                     {renderDueStatus(t)}
                   </td>
 
