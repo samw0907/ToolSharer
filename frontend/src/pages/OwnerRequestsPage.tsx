@@ -1,4 +1,3 @@
-// src/pages/OwnerRequestsPage.tsx
 import { useEffect, useState } from "react";
 import { apiGet, apiPatch } from "../lib/api";
 
@@ -23,7 +22,6 @@ interface BorrowRequest {
   updated_at: string;
   tool?: ToolMini | null;
   borrower?: UserMini | null;
-
   start_date?: string | null;
   due_date?: string | null;
   is_overdue?: boolean;
@@ -31,14 +29,53 @@ interface BorrowRequest {
   days_until_due?: number;
 }
 
-interface OwnerRequestsPageProps {
-  ownerId: number;
-  onRequestsChanged?: () => void;
-}
-
 function formatDate(value?: string | null): string {
   if (!value) return "—";
   return value;
+}
+
+function renderDueStatus(r: BorrowRequest) {
+  if (r.status !== "APPROVED" || !r.due_date) {
+    return <span style={{ color: "#777" }}>—</span>;
+  }
+
+  const isOverdue = Boolean(r.is_overdue);
+  const daysOverdue = r.days_overdue ?? 0;
+  const daysUntilDue = r.days_until_due ?? 0;
+
+  if (isOverdue) {
+    return (
+      <span
+        style={{
+          display: "inline-block",
+          padding: "0.15rem 0.4rem",
+          borderRadius: "4px",
+          border: "1px solid #ff6b6b",
+          color: "#ff6b6b",
+          fontWeight: 700,
+          fontSize: "0.85rem",
+        }}
+        title={`Overdue by ${daysOverdue} day(s)`}
+      >
+        OVERDUE ({daysOverdue})
+      </span>
+    );
+  }
+
+  if (daysUntilDue === 0) {
+    return <span style={{ color: "#f7cd46" }}>Due today</span>;
+  }
+
+  return (
+    <span style={{ color: "#aaa" }}>
+      Due in {daysUntilDue} day{daysUntilDue === 1 ? "" : "s"}
+    </span>
+  );
+}
+
+interface OwnerRequestsPageProps {
+  ownerId: number;
+  onRequestsChanged?: () => void;
 }
 
 export default function OwnerRequestsPage({
@@ -53,7 +90,9 @@ export default function OwnerRequestsPage({
   async function fetchRequests() {
     try {
       setLoading(true);
-      const data = await apiGet<BorrowRequest[]>(`/borrow_requests/owner/${ownerId}`);
+      const data = await apiGet<BorrowRequest[]>(
+        `/borrow_requests/owner/${ownerId}`
+      );
       setRequests(data);
       setError(null);
     } catch (err) {
@@ -73,7 +112,9 @@ export default function OwnerRequestsPage({
       setUpdatingId(requestId);
       setError(null);
 
-      const updated = await apiPatch<BorrowRequest>(`/borrow_requests/${requestId}/${action}`);
+      const updated = await apiPatch<BorrowRequest>(
+        `/borrow_requests/${requestId}/${action}`
+      );
 
       if (action === "approve") {
         await fetchRequests();
@@ -130,8 +171,8 @@ export default function OwnerRequestsPage({
             padding: "0.75rem",
             border: "1px solid #d32f2f",
             borderRadius: "4px",
-            backgroundColor: "transparent", // CHANGE: dark-theme friendly
-            color: "#ff6b6b", // CHANGE: dark-theme friendly
+            backgroundColor: "transparent",
+            color: "#ff6b6b",
           }}
         >
           {error}
@@ -164,7 +205,7 @@ export default function OwnerRequestsPage({
                 Due
               </th>
               <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
-                Message
+                Due status
               </th>
               <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
                 Status
@@ -185,53 +226,40 @@ export default function OwnerRequestsPage({
               const toolLabel = r.tool?.name ?? `Tool #${r.tool_id}`;
               const borrowerLabel = r.borrower?.email ?? `User #${r.borrower_id}`;
 
-              const isOverdue = Boolean(r.is_overdue);
-              const daysOverdue = r.days_overdue ?? 0;
-              const daysUntilDue = r.days_until_due ?? 0;
-
-              const dateLabel =
-                r.start_date && r.due_date ? `${r.start_date} → ${r.due_date}` : "—";
-
               return (
                 <tr key={r.id}>
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                    {toolLabel}
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    <div style={{ fontWeight: 600 }}>{toolLabel}</div>
+                    <div style={{ color: "#aaa", marginTop: "0.25rem" }}>
+                      {r.message || (
+                        <span style={{ fontStyle: "italic" }}>No message</span>
+                      )}
+                    </div>
                   </td>
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
+
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
                     {borrowerLabel}
                   </td>
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                    {dateLabel}
-                    {r.status === "APPROVED" && r.due_date && !isOverdue && (
-                      <div style={{ marginTop: "0.25rem", color: "#666" }}>
-                        {daysUntilDue === 0
-                          ? "Due today"
-                          : `Due in ${daysUntilDue} day${daysUntilDue === 1 ? "" : "s"}`}
-                      </div>
-                    )}
+
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {formatDate(r.start_date)}
                   </td>
-                  <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                    {r.status}{" "}
-                    {isOverdue && (
-                      <span
-                        style={{
-                          marginLeft: "0.5rem",
-                          padding: "0.15rem 0.4rem",
-                          borderRadius: "4px",
-                          border: "1px solid #d32f2f",
-                          color: "#d32f2f",
-                          fontWeight: 700,
-                          fontSize: "0.85rem",
-                        }}
-                        title={`Overdue by ${daysOverdue} day(s)`}
-                      >
-                        OVERDUE ({daysOverdue})
-                      </span>
-                    )}
+
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {formatDate(r.due_date)}
                   </td>
+
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {renderDueStatus(r)}
+                  </td>
+
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {r.status}
+                  </td>
+
                   <td
                     style={{
-                      borderBottom: "1px solid #eee",
+                      borderBottom: "1px solid #333",
                       padding: "0.5rem",
                       whiteSpace: "nowrap",
                     }}
@@ -244,6 +272,7 @@ export default function OwnerRequestsPage({
                     >
                       {isUpdatingRow ? "Working..." : "Approve"}
                     </button>
+
                     <button
                       type="button"
                       onClick={() => updateStatus(r.id, "decline")}
@@ -252,6 +281,7 @@ export default function OwnerRequestsPage({
                     >
                       {isUpdatingRow ? "Working..." : "Decline"}
                     </button>
+
                     <button
                       type="button"
                       onClick={() => returnTool(r.id)}
