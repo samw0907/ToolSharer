@@ -12,10 +12,60 @@ interface Tool {
   is_borrowed?: boolean;
   borrowed_by_user_id?: number | null;
   borrowed_by_email?: string | null;
+
+  borrowed_start_date?: string | null;
+  borrowed_due_date?: string | null;
+  borrowed_is_overdue?: boolean;
+  borrowed_days_overdue?: number;
+  borrowed_days_until_due?: number;
 }
 
 interface MyToolsPageProps {
   ownerId: number;
+}
+
+function formatDate(value?: string | null): string {
+  if (!value) return "—";
+  return value;
+}
+
+function renderDueStatus(t: Tool) {
+  if (!t.is_borrowed || !t.borrowed_due_date) {
+    return <span style={{ color: "#777" }}>—</span>;
+  }
+
+  const isOverdue = Boolean(t.borrowed_is_overdue);
+  const daysOverdue = t.borrowed_days_overdue ?? 0;
+  const daysUntilDue = t.borrowed_days_until_due ?? 0;
+
+  if (isOverdue) {
+    return (
+      <span
+        style={{
+          display: "inline-block",
+          padding: "0.15rem 0.4rem",
+          borderRadius: "4px",
+          border: "1px solid #ff6b6b",
+          color: "#ff6b6b",
+          fontWeight: 700,
+          fontSize: "0.85rem",
+        }}
+        title={`Overdue by ${daysOverdue} day(s)`}
+      >
+        OVERDUE ({daysOverdue})
+      </span>
+    );
+  }
+
+  if (daysUntilDue === 0) {
+    return <span style={{ color: "#f7cd46" }}>Due today</span>;
+  }
+
+  return (
+    <span style={{ color: "#aaa" }}>
+      Due in {daysUntilDue} day{daysUntilDue === 1 ? "" : "s"}
+    </span>
+  );
 }
 
 export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
@@ -97,8 +147,8 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
             padding: "0.75rem",
             border: "1px solid #d32f2f",
             borderRadius: "4px",
-            backgroundColor: "#fff5f5",
-            color: "#d32f2f",
+            backgroundColor: "transparent",
+            color: "#ff6b6b",
           }}
         >
           {error}
@@ -124,8 +174,17 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
               <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
                 Location
               </th>
-              <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
-                Status
+              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+                Borrow Status
+              </th>
+              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+                Start
+              </th>
+              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+                Due
+              </th>
+              <th style={{ borderBottom: "1px solid #444", padding: "0.5rem" }}>
+                Due status
               </th>
               <th style={{ borderBottom: "1px solid #ddd", padding: "0.5rem" }}>
                 Actions
@@ -163,6 +222,18 @@ export default function MyToolsPage({ ownerId }: MyToolsPageProps) {
                     ) : (
                       "Not available"
                     )}
+                  </td>
+
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {formatDate(t.borrowed_start_date)}
+                  </td>
+
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {formatDate(t.borrowed_due_date)}
+                  </td>
+
+                  <td style={{ borderBottom: "1px solid #333", padding: "0.5rem" }}>
+                    {renderDueStatus(t)}
                   </td>
 
                   <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
