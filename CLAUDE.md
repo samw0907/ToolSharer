@@ -188,15 +188,21 @@ Not full microservices (too complex for scope), but service-oriented with server
 - `thumbnail_key` (text) - S3 key for thumbnail
 - `created_at` (timestamptz)
 
-### `tool_loans`
-- `id` (uuid, PK)
-- `tool_id` (uuid, FK → tools.id)
-- `borrower_id` (uuid, FK → users.id)
-- `start_date` (date)
-- `due_date` (date)
-- `returned_at` (timestamptz, nullable) - NULL until returned
-- `reminder_sent` (boolean, default false)
+### `borrow_requests` (IMPLEMENTED - replaces tool_loans)
+**Note:** Changed from simple `tool_loans` to `borrow_requests` for more realistic approval workflow.
+
+- `id` (integer, PK)
+- `tool_id` (integer, FK → tools.id)
+- `borrower_id` (integer, FK → users.id)
+- `message` (text, nullable) - Optional message to owner
+- `start_date` (date, nullable)
+- `due_date` (date, nullable)
+- `status` (enum) - PENDING, APPROVED, DECLINED, CANCELLED, RETURN_PENDING, RETURNED
 - `created_at`, `updated_at` (timestamptz)
+
+**Current Implementation Uses:**
+- Integer IDs (not UUIDs) for simplicity in v1
+- SQLite for local development (will migrate to PostgreSQL)
 
 ### `stats_summary` (for Lambda 3)
 - `id` (uuid, PK)
@@ -210,47 +216,59 @@ Not full microservices (too complex for scope), but service-oriented with server
 
 ## API Endpoints
 
-### Health
-- `GET /health` - Healthcheck (no auth)
+### Health (IMPLEMENTED)
+- `GET /health` - Healthcheck
+- `GET /ping` - Ping endpoint
 
-### Auth & User
+### Auth & User (TODO)
 - `GET /auth/google/login` - Redirect to Google OAuth2 (no auth)
 - `GET /auth/google/callback` - Handle OAuth callback, create/find user, issue JWT (no auth)
 - `GET /me` - Get current user profile (auth required)
 - `PUT /me` - Update user profile (auth required)
 - `PUT /me/location` - Save home location (auth required)
 
-### Geocoding
+### Users (IMPLEMENTED - basic)
+- `GET /users` - List all users (for demo user selector)
+- `POST /users` - Create user
+
+### Geocoding (TODO)
 - `POST /geocode` - Convert address to lat/lng (auth required)
   - Body: `{ address: string }`
   - Returns: `{ lat, lng, formatted_address }`
 
-### Tools
-- `GET /tools` - List all tools, optional filters (no auth required)
-- `GET /tools/{tool_id}` - Get tool details (no auth required)
-- `POST /tools` - Create a tool (auth required)
-- `PUT /tools/{tool_id}` - Update tool, owner-only (auth required)
-- `DELETE /tools/{tool_id}` - Delete tool, owner-only (auth required, optional)
-- `GET /me/tools` - List tools owned by current user (auth required)
+### Tools (IMPLEMENTED)
+- `GET /tools` - List all tools with optional current_user_id filter
+- `GET /tools/{tool_id}` - Get tool details (TODO)
+- `GET /tools/owner/{owner_id}` - List user's tools with borrow status
+- `POST /tools` - Create a tool
+- `PUT /tools/{tool_id}` - Update tool (name, description, location) ✨ NEW
+- `PATCH /tools/{tool_id}/availability` - Toggle availability
+- `DELETE /tools/{tool_id}` - Delete tool (if no borrow requests exist)
 
-### Tools - Location-based
-- `GET /tools/near?lat=&lng=&radius_km=` - Get nearby tools with distances (auth required)
+### Tools - Location-based (TODO)
+- `GET /tools/near?lat=&lng=&radius_km=` - Get nearby tools with distances
 
-### Tool Images
-- `POST /tools/{tool_id}/image-upload-url` - Get pre-signed S3 URL for upload (auth required)
+### Tool Images (TODO)
+- `POST /tools/{tool_id}/image-upload-url` - Get pre-signed S3 URL for upload
 
-### Loans
-- `POST /tools/{tool_id}/loans` - Create a loan (auth required)
-- `GET /me/loans` - List current user's loans (auth required)
-- `POST /loans/{loan_id}/return` - Mark loan as returned (auth required)
+### Borrow Requests (IMPLEMENTED)
+- `GET /borrow_requests` - List all requests
+- `GET /borrow_requests/owner/{owner_id}` - Owner's incoming requests
+- `GET /borrow_requests/borrower/{borrower_id}` - User's borrow requests
+- `POST /borrow_requests` - Create borrow request
+- `PATCH /borrow_requests/{request_id}/approve` - Approve request
+- `PATCH /borrow_requests/{request_id}/decline` - Decline request
+- `PATCH /borrow_requests/{request_id}/cancel` - Cancel request (borrower)
+- `PATCH /borrow_requests/{request_id}/initiate-return` - Borrower marks as returned ✨ NEW
+- `PATCH /borrow_requests/{request_id}/confirm-return` - Owner confirms return ✨ NEW
 
-### AI
-- `POST /ai/chat` - Smart Tool Helper chat endpoint (auth required)
+### AI (TODO)
+- `POST /ai/chat` - Smart Tool Helper chat endpoint
   - Streams LLM response back to frontend
 
-### Stats
-- `GET /me/summary` - User's summary stats (auth required)
-- `GET /stats/summary` - Global stats (optional auth)
+### Stats (TODO)
+- `GET /me/summary` - User's summary stats
+- `GET /stats/summary` - Global stats
 
 ---
 
@@ -345,13 +363,87 @@ Not full microservices (too complex for scope), but service-oriented with server
 
 ## Current Project Status
 
-**Starting Point**: Mid-project jump from ChatGPT. Completed initial planning phase. Ready to begin implementation.
+**Progress: ~30% Complete** (Updated: Jan 17, 2025)
 
-**Next Immediate Steps**:
-1. Create project repository structure
-2. Set up FastAPI skeleton with Docker
-3. Initialize database with Alembic
-4. Begin Week 1, Day 1 tasks
+### ✅ Completed (Session 1 - UX Overhaul)
+
+**Backend:**
+- FastAPI app structure with routers, models, schemas, services
+- SQLAlchemy ORM + Alembic migrations (5 migrations total)
+- 27 API endpoints for users, tools, and borrow requests
+- BorrowRequest model with approval workflow (PENDING → APPROVED → RETURN_PENDING → RETURNED)
+- Two-step return endpoints (initiate-return, confirm-return)
+- Edit tool endpoint (PUT /tools/{id})
+- Overdue calculation for active loans
+
+**Frontend:**
+- React + TypeScript + Vite
+- **3-page structure** (consolidated from original 4-page plan):
+  1. **Browse Tools** - Discover and request tools (hides own tools by default)
+  2. **My Lending** - Consolidated tools inventory + incoming requests + active loans
+  3. **My Borrowing** - Outgoing requests + tools being borrowed
+- Two-step return UI (borrower initiates, owner confirms)
+- Edit tool form component
+- API integration layer with error handling
+- User selector for testing (will be replaced with OAuth2)
+
+**Database:**
+- SQLite (local development)
+- Users, Tools, BorrowRequests tables
+- Status enum includes RETURN_PENDING
+
+### 🚧 In Progress / Next Up
+
+**Immediate Priority (TIER 1):**
+1. OAuth2 with Google (remove user selector)
+2. Database schema updates (add missing fields for geocoding)
+3. Docker + PostgreSQL setup
+4. Lambda functions (image processing, overdue reminders)
+
+**Secondary Priority (TIER 2):**
+5. Geospatial features (geocoding, maps, radius search)
+6. AI integration (Smart Tool Helper)
+
+**Deployment (TIER 3):**
+7. AWS CDK infrastructure
+8. Deploy to production
+
+### 📝 Design Decisions Made
+
+- **BorrowRequest model** instead of simple ToolLoans (more realistic approval workflow)
+- **Two-step return process** for better accountability (borrower initiates, owner confirms)
+- **3-page frontend** for clearer mental model
+- **Integer IDs** instead of UUIDs for v1 simplicity
+- **SQLite** for local dev (will migrate to PostgreSQL before deployment)
+
+---
+
+## Frontend Page Structure (IMPLEMENTED)
+
+The application uses a **3-page layout** for clearer user experience:
+
+### 1. Browse Tools (BrowseToolsPage.tsx)
+- Discover tools available to borrow
+- **Hides user's own tools by default** (toggle to show)
+- Request to borrow with dates and message
+- Shows tool availability and borrow status
+
+### 2. My Lending (MyLendingPage.tsx)
+**Consolidated view for tool owners** with 5 sections:
+1. **My Tools Inventory** - Create, edit, delete tools
+2. **Pending Requests** - Incoming requests needing approval
+3. **Returns Pending Confirmation** - Borrowers marked as returned, awaiting owner confirmation
+4. **Active Loans** - Currently borrowed tools
+5. **History** - Completed requests
+
+### 3. My Borrowing (MyBorrowingPage.tsx)
+**View for borrowers** with 4 sections:
+1. **Currently Borrowing** - Active loans with "I Returned This" button
+2. **Return Pending Owner Confirmation** - Waiting for owner to confirm
+3. **Pending Approval** - Requests waiting for owner approval
+4. **History** - Completed requests
+
+**Rationale:** Consolidated from 4 pages (Tools, Owner Requests, My Requests, My Tools) to 3 pages for simpler mental model and reduced cognitive load.
 
 ---
 
@@ -380,3 +472,12 @@ When discussing this project, emphasize:
 - Reference this document's timeline and constraints when planning work
 - If a feature risks scope creep, flag it and suggest deferring to "v2" or separate project
 - Remember: No localStorage/sessionStorage in artifacts - use state management appropriately
+
+### Session Continuity
+- **Session 1 (Jan 17, 2025)**: UX overhaul complete
+  - Implemented BorrowRequest model with two-step returns
+  - Reorganized frontend to 3-page structure
+  - Added edit tool functionality
+  - Plan file: `C:\Users\swill\.claude\plans\agile-giggling-kite.md`
+
+- **Next Session**: Begin with OAuth2 implementation (TIER 1, priority #1)
