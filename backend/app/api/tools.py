@@ -9,7 +9,7 @@ from app.db.session import get_db
 from app.models.borrow_request import BorrowRequest, RequestStatus
 from app.models.tool import Tool
 from app.models.user import User
-from app.schemas.tool import ToolCreate, ToolRead
+from app.schemas.tool import ToolCreate, ToolRead, ToolUpdate
 
 router = APIRouter(prefix="/tools", tags=["tools"])
 
@@ -92,6 +92,24 @@ def create_tool(payload: ToolCreate, db: Session = Depends(get_db)):
     )
 
     db.add(tool)
+    db.commit()
+    db.refresh(tool)
+    return tool
+
+@router.put("/{tool_id}", response_model=ToolRead)
+def update_tool(tool_id: int, payload: ToolUpdate, db: Session = Depends(get_db)):
+    tool = db.query(Tool).filter(Tool.id == tool_id).first()
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+
+    # Update only provided fields
+    if payload.name is not None:
+        tool.name = payload.name
+    if payload.description is not None:
+        tool.description = payload.description
+    if payload.location is not None:
+        tool.location = payload.location
+
     db.commit()
     db.refresh(tool)
     return tool

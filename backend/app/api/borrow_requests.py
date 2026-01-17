@@ -17,7 +17,7 @@ def _annotate_overdue_fields(req: BorrowRequest) -> None:
     today = date.today()
 
     is_overdue = (
-        req.status == RequestStatus.APPROVED
+        req.status in (RequestStatus.APPROVED, RequestStatus.RETURN_PENDING)
         and req.due_date is not None
         and req.due_date < today
     )
@@ -212,8 +212,9 @@ def cancel_request(request_id: int, db: Session = Depends(get_db)):
 
     return borrow_request
 
-@router.patch("/{request_id}/return", response_model=BorrowRequestRead)
-def return_tool(request_id: int, db: Session = Depends(get_db)):
+@router.patch("/{request_id}/initiate-return", response_model=BorrowRequestRead)
+def initiate_return(request_id: int, db: Session = Depends(get_db)):
+    """Borrower initiates the return process"""
     borrow_request = _get_request_or_404(request_id, db)
 
     if borrow_request.status != RequestStatus.APPROVED:
@@ -221,12 +222,31 @@ def return_tool(request_id: int, db: Session = Depends(get_db)):
             status_code=400, detail="Only approved requests can be returned"
         )
 
+    borrow_request.status = RequestStatus.RETURN_PENDING
+
+    db.commit()
+    db.refresh(borrow_request)
+
+    _annotate_overdue_fields(borrow_request)
+
+    return borrow_request
+
+
+@router.patch("/{request_id}/confirm-return", response_model=BorrowRequestRead)
+def confirm_return(request_id: int, db: Session = Depends(get_db)):
+    """Owner confirms the tool has been returned"""
+    borrow_request = _get_request_or_404(request_id, db)
+
+    if borrow_request.status != RequestStatus.RETURN_PENDING:
+        raise HTTPException(
+            status_code=400, detail="Can only confirm returns that are pending"
+        )
+
     tool = db.query(Tool).filter(Tool.id == borrow_request.tool_id).first()
     if not tool:
         raise HTTPException(status_code=400, detail="Tool not found")
 
     tool.is_available = True
-
     borrow_request.status = RequestStatus.RETURNED
 
     db.commit()

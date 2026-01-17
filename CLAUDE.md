@@ -85,12 +85,19 @@ Not full microservices (too complex for scope), but service-oriented with server
 - Edit tool information (including location)
 - Delete tool (optional)
 
-### 3. Borrowing & Returning
-- Select start date + due date to borrow a tool
-- Simple availability check (can't borrow if currently out on loan)
-- "My Loans" page showing active loans with due dates
-- Return tool button → marks loan as returned
-- Loan history (optional)
+### 3. Borrowing & Returning (IMPLEMENTED - ENHANCED)
+**Request-Approval Workflow** (More realistic than originally planned):
+- Borrower selects start date + due date and requests to borrow
+- Owner reviews incoming requests and approves/declines
+- **Two-Step Return Process**:
+  1. Borrower clicks "I Returned This" → Status: RETURN_PENDING
+  2. Owner clicks "Confirm Return" → Status: RETURNED, tool available again
+- Overdue tracking with visual indicators
+- Full request history
+
+**Status Flow:**
+- PENDING → APPROVED → RETURN_PENDING → RETURNED
+- Alternative paths: DECLINED, CANCELLED
 
 ### 4. Location & Mapping (3-lite Geo Approach)
 **Geocoding**:

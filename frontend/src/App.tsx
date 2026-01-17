@@ -1,12 +1,11 @@
 // src/App.tsx
 import { useEffect, useState, ChangeEvent } from "react";
-import ToolsPage from "./pages/ToolsPage";
-import OwnerRequestsPage from "./pages/OwnerRequestsPage";
-import BorrowerRequestsPage from "./pages/BorrowerRequestsPage";
-import MyToolsPage from "./pages/MyToolsPage";
+import BrowseToolsPage from "./pages/BrowseToolsPage";
+import MyLendingPage from "./pages/MyLendingPage";
+import MyBorrowingPage from "./pages/MyBorrowingPage";
 import { apiGet } from "./lib/api";
 
-type View = "tools" | "ownerRequests" | "myRequests" | "myTools";
+type View = "browse" | "lending" | "borrowing";
 
 interface User {
   id: number;
@@ -15,14 +14,14 @@ interface User {
 }
 
 function App() {
-  const [view, setView] = useState<View>("tools");
+  const [view, setView] = useState<View>("browse");
   const [currentUserId, setCurrentUserId] = useState<number>(1);
   const [users, setUsers] = useState<User[]>([]);
   const [usersError, setUsersError] = useState<string | null>(null);
-  const [toolsReloadToken, setToolsReloadToken] = useState<number>(0);
+  const [reloadToken, setReloadToken] = useState<number>(0);
 
-  function notifyToolsShouldReload() {
-    setToolsReloadToken((prev) => prev + 1);
+  function notifyDataChanged() {
+    setReloadToken((prev) => prev + 1);
   }
 
   useEffect(() => {
@@ -48,7 +47,7 @@ function App() {
     const value = Number(e.target.value);
     if (!Number.isNaN(value) && value > 0) {
       setCurrentUserId(value);
-      notifyToolsShouldReload();
+      notifyDataChanged();
     }
   }
 
@@ -75,60 +74,46 @@ function App() {
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <button
                 type="button"
-                onClick={() => setView("tools")}
+                onClick={() => setView("browse")}
                 style={{
                   padding: "0.5rem 1rem",
                   borderRadius: "4px",
-                  border: view === "tools" ? "2px solid #000" : "1px solid #ccc",
-                  backgroundColor: view === "tools" ? "#f0f0f0" : "#ffffff",
+                  border: view === "browse" ? "2px solid #000" : "1px solid #ccc",
+                  backgroundColor: view === "browse" ? "#f0f0f0" : "#ffffff",
                   color: "#000",
                 }}
               >
-                Tools
+                Browse Tools
               </button>
 
               <button
                 type="button"
-                onClick={() => setView("ownerRequests")}
+                onClick={() => setView("lending")}
                 style={{
                   padding: "0.5rem 1rem",
                   borderRadius: "4px",
                   border:
-                    view === "ownerRequests" ? "2px solid #000" : "1px solid #ccc",
-                  backgroundColor: view === "ownerRequests" ? "#f0f0f0" : "#ffffff",
+                    view === "lending" ? "2px solid #000" : "1px solid #ccc",
+                  backgroundColor: view === "lending" ? "#f0f0f0" : "#ffffff",
                   color: "#000",
                 }}
               >
-                Owner Requests
+                My Lending
               </button>
 
               <button
                 type="button"
-                onClick={() => setView("myRequests")}
+                onClick={() => setView("borrowing")}
                 style={{
                   padding: "0.5rem 1rem",
                   borderRadius: "4px",
                   border:
-                    view === "myRequests" ? "2px solid #000" : "1px solid #ccc",
-                  backgroundColor: view === "myRequests" ? "#f0f0f0" : "#ffffff",
+                    view === "borrowing" ? "2px solid #000" : "1px solid #ccc",
+                  backgroundColor: view === "borrowing" ? "#f0f0f0" : "#ffffff",
                   color: "#000",
                 }}
               >
-                My Requests
-              </button>
-              <button
-                type="button"
-                onClick={() => setView("myTools")}
-                style={{
-                  padding: "0.5rem 1rem",
-                  borderRadius: "4px",
-                  border:
-                    view === "myTools" ? "2px solid #000" : "1px solid #ccc",
-                  backgroundColor: view === "myTools" ? "#f0f0f0" : "#ffffff",
-                  color: "#000",
-                }}
-              >
-                My Tools
+                My Borrowing
               </button>
             </div>
           </div>
@@ -155,10 +140,9 @@ function App() {
         </div>
       </header>
 
-      {view === "tools" && <ToolsPage currentUserId={currentUserId} reloadToken={toolsReloadToken}/>}
-      {view === "ownerRequests" && (<OwnerRequestsPage ownerId={currentUserId} onRequestsChanged={notifyToolsShouldReload} />)}
-      {view === "myRequests" && ( <BorrowerRequestsPage borrowerId={currentUserId} onRequestsChanged={notifyToolsShouldReload} />)}
-      {view === "myTools" && <MyToolsPage ownerId={currentUserId} />}
+      {view === "browse" && <BrowseToolsPage currentUserId={currentUserId} reloadToken={reloadToken} />}
+      {view === "lending" && <MyLendingPage ownerId={currentUserId} onRequestsChanged={notifyDataChanged} />}
+      {view === "borrowing" && <MyBorrowingPage borrowerId={currentUserId} onRequestsChanged={notifyDataChanged} />}
     </div>
   );
 }

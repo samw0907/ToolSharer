@@ -13,6 +13,7 @@ class RequestStatus(str, enum.Enum):
     APPROVED = "APPROVED"
     DECLINED = "DECLINED"
     CANCELLED = "CANCELLED"
+    RETURN_PENDING = "RETURN_PENDING"
     RETURNED = "RETURNED"
 
 

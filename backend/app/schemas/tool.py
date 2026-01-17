@@ -14,6 +14,12 @@ class ToolCreate(ToolBase):
     pass
 
 
+class ToolUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    location: str | None = None
+
+
 class ToolRead(ToolBase):
     id: int
     has_pending_request: bool = False
