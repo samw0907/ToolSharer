@@ -394,6 +394,46 @@ Not full microservices (too complex for scope), but service-oriented with server
 
 ### 🚧 In Progress / Next Up
 
+**Quick Win Polish Features (TIER 0 - Do First!):**
+
+These small features add professional polish with minimal effort:
+
+1. **Show owner name/email instead of "Owner ID"** (5 min)
+   - Display `user.email` or `user.full_name` on tool cards
+   - Replace "Owner ID: 5" with "Owner: john@example.com"
+
+2. **Notification counts on nav buttons** (15 min)
+   - "My Lending (3)" - count of pending requests needing approval
+   - "My Borrowing (2)" - count of overdue items or returns pending
+   - Visual indicator for actions needed
+
+3. **Basic search/filter on Browse Tools** (20 min)
+   - Text input to filter by tool name or description
+   - Checkbox to hide unavailable tools
+   - Simple client-side filtering for now
+
+4. **Pending request count badge on tools** (10 min)
+   - Show "X pending requests" on tool cards when they exist
+   - Helps set expectations before requesting
+
+5. **Request message preview on Browse Tools** (10 min)
+   - When you have a pending request, show your message preview
+   - Helps remember what you asked for
+
+6. **Due date quick presets** (15 min)
+   - Add preset buttons: "1 day", "3 days", "1 week", "2 weeks"
+   - Keep custom date picker as fallback
+   - Faster borrowing workflow
+
+7. **Empty states with helpful messages** (10 min)
+   - "No tools available yet. Be the first to share!" + [Add Tool] button
+   - "No pending requests. Check back soon!"
+   - Guides users on what to do next
+
+**Estimated Total: 1.5 hours for significant UX improvement**
+
+---
+
 **Immediate Priority (TIER 1):**
 1. OAuth2 with Google (remove user selector)
 2. Database schema updates (add missing fields for geocoding)
@@ -478,6 +518,9 @@ When discussing this project, emphasize:
   - Implemented BorrowRequest model with two-step returns
   - Reorganized frontend to 3-page structure
   - Added edit tool functionality
+  - Identified 7 quick-win polish features for TIER 0
   - Plan file: `C:\Users\swill\.claude\plans\agile-giggling-kite.md`
 
-- **Next Session**: Begin with OAuth2 implementation (TIER 1, priority #1)
+- **Next Session**: Implement TIER 0 polish features (7 small UX improvements, ~1.5 hours total)
+  - Start with #1 (owner names) and work through the list
+  - Then proceed to TIER 1 (OAuth2)
