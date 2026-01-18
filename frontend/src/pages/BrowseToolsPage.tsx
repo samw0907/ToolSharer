@@ -38,6 +38,8 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
   const [activeRequestToolId, setActiveRequestToolId] = useState<number | null>(null);
   const [lastRequest, setLastRequest] = useState<BorrowRequest | null>(null);
   const [showMyTools, setShowMyTools] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hideUnavailable, setHideUnavailable] = useState(false);
 
   function loadTools() {
     setLoading(true);
@@ -66,14 +68,56 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
     loadTools();
   }
 
-  // Filter out own tools unless "Show my tools" is toggled
-  const filteredTools = showMyTools ? tools : tools.filter(t => t.owner_id !== currentUserId);
+  // Apply filters: own tools, search query, availability
+  const filteredTools = tools.filter((t) => {
+    // Filter out own tools unless toggled
+    if (!showMyTools && t.owner_id === currentUserId) return false;
+
+    // Filter out unavailable tools if checkbox is checked
+    if (hideUnavailable && !t.is_available) return false;
+
+    // Filter by search query (name or description)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const matchesName = t.name.toLowerCase().includes(query);
+      const matchesDescription = t.description?.toLowerCase().includes(query) ?? false;
+      if (!matchesName && !matchesDescription) return false;
+    }
+
+    return true;
+  });
 
   return (
     <div style={{ padding: "2rem" }}>
       <h1>Browse Tools</h1>
 
       <div style={{ marginBottom: "1rem" }}>
+        <input
+          type="text"
+          placeholder="Search by name or description..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{
+            padding: "0.5rem",
+            width: "300px",
+            maxWidth: "100%",
+            borderRadius: "4px",
+            border: "1px solid #555",
+            backgroundColor: "#111",
+            color: "#fff",
+          }}
+        />
+      </div>
+
+      <div style={{ marginBottom: "1rem", display: "flex", gap: "1.5rem" }}>
+        <label>
+          <input
+            type="checkbox"
+            checked={hideUnavailable}
+            onChange={(e) => setHideUnavailable(e.target.checked)}
+          />
+          {" "}Hide unavailable tools
+        </label>
         <label>
           <input
             type="checkbox"
