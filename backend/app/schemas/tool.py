@@ -29,5 +29,9 @@ class ToolRead(ToolBase):
     borrowed_by_user_id: int | None = None
     borrowed_by_email: str | None = None
 
+    # Owner details
+    owner_email: str | None = None
+    owner_name: str | None = None
+
     class Config:
         from_attributes = True

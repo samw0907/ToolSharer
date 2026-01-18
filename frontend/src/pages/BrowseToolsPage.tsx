@@ -12,6 +12,8 @@ interface Tool {
   is_available: boolean;
   has_pending_request?: boolean;
   is_borrowing?: boolean;
+  owner_email?: string;
+  owner_name?: string;
 }
 
 interface BorrowRequest {
@@ -134,7 +136,7 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
                 <span>{t.location}</span>
                 <br />
                 <small>
-                  Owner ID: {t.owner_id} | {t.is_available ? "Available" : "Not available"}
+                  Owner: {t.owner_name || t.owner_email || `User #${t.owner_id}`} | {t.is_available ? "Available" : "Not available"}
                 </small>
 
                 <div style={{ marginTop: "0.5rem" }}>

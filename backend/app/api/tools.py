@@ -3,7 +3,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.db.session import get_db
 from app.models.borrow_request import BorrowRequest, RequestStatus
@@ -19,7 +19,13 @@ def list_tools(
     db: Session = Depends(get_db),
     current_user_id: int | None = Query(default=None),
 ):
-    tools = db.query(Tool).all()
+    tools = db.query(Tool).options(joinedload(Tool.owner)).all()
+
+    # Populate owner details for all tools
+    for t in tools:
+        if t.owner:
+            setattr(t, "owner_email", t.owner.email)
+            setattr(t, "owner_name", t.owner.full_name)
 
     if current_user_id is None:
         return tools
