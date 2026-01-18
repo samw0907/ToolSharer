@@ -92,6 +92,7 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
             border: "1px solid #4caf50",
             borderRadius: "4px",
             backgroundColor: "#f0fff0",
+            color: "#1a1a1a",
           }}
         >
           <strong>Borrow request created:</strong> "{lastRequest.message}" for

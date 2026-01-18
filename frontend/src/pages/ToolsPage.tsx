@@ -83,9 +83,10 @@ export default function ToolsPage({ currentUserId, reloadToken }: ToolsPageProps
             border: "1px solid #4caf50",
             borderRadius: "4px",
             backgroundColor: "#f0fff0",
+            color: "#1a1a1a",
           }}
         >
-          <strong>Borrow request created:</strong> “{lastRequest.message}” for
+          <strong>Borrow request created:</strong> "{lastRequest.message}" for
           tool #{lastRequest.tool_id} (status: {lastRequest.status})
         </div>
       )}
