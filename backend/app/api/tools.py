@@ -40,15 +40,16 @@ def list_tools(
     if current_user_id is None:
         return tools
 
-    pending_tool_ids = (
-        db.query(BorrowRequest.tool_id)
+    # Get user's pending requests with messages
+    pending_requests = (
+        db.query(BorrowRequest.tool_id, BorrowRequest.message)
         .filter(
             BorrowRequest.borrower_id == current_user_id,
             BorrowRequest.status == RequestStatus.PENDING,
         )
         .all()
     )
-    pending_set = {row[0] for row in pending_tool_ids}
+    pending_map = {row[0]: row[1] for row in pending_requests}
 
     approved_tool_ids = (
         db.query(BorrowRequest.tool_id)
@@ -61,8 +62,9 @@ def list_tools(
     approved_set = {row[0] for row in approved_tool_ids}
 
     for t in tools:
-        setattr(t, "has_pending_request", t.id in pending_set)
+        setattr(t, "has_pending_request", t.id in pending_map)
         setattr(t, "is_borrowing", t.id in approved_set)
+        setattr(t, "my_pending_request_message", pending_map.get(t.id))
 
     return tools
 

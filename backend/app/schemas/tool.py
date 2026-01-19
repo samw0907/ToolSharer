@@ -36,5 +36,8 @@ class ToolRead(ToolBase):
     # Pending requests count (for Browse Tools)
     pending_request_count: int = 0
 
+    # User's own pending request message (if any)
+    my_pending_request_message: str | None = None
+
     class Config:
         from_attributes = True

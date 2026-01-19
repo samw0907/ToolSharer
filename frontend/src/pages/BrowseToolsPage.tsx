@@ -15,6 +15,7 @@ interface Tool {
   owner_email?: string;
   owner_name?: string;
   pending_request_count?: number;
+  my_pending_request_message?: string;
 }
 
 interface BorrowRequest {
@@ -208,6 +209,22 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
                     </span>
                   )}
                 </div>
+
+                {hasPending && t.my_pending_request_message && (
+                  <div
+                    style={{
+                      marginTop: "0.5rem",
+                      padding: "0.5rem",
+                      backgroundColor: "#2a2a2a",
+                      borderRadius: "4px",
+                      borderLeft: "3px solid #ff9800",
+                      fontSize: "0.9em",
+                    }}
+                  >
+                    <span style={{ color: "#aaa" }}>Your message: </span>
+                    <span style={{ fontStyle: "italic" }}>"{t.my_pending_request_message}"</span>
+                  </div>
+                )}
 
                 {canRequest && isFormOpen && (
                   <CreateBorrowRequestForm
