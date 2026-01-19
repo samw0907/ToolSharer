@@ -524,3 +524,16 @@ When discussing this project, emphasize:
 - **Next Session**: Implement TIER 0 polish features (7 small UX improvements, ~1.5 hours total)
   - Start with #1 (owner names) and work through the list
   - Then proceed to TIER 1 (OAuth2)
+
+---
+
+## Ideas for Later
+
+*Features and enhancements to consider after core functionality is complete. These are not committed to the current scope but worth revisiting.*
+
+1. **Calendar View for Borrows/Lends**
+   - Visual calendar showing borrow and lending activity
+   - Color-coded entries: one color for items you're borrowing, another for items you're lending out
+   - Could show due dates, pickup dates, return dates at a glance
+   - Helps users plan around their tool availability
+   - Potential libraries: react-big-calendar, FullCalendar, or custom with date-fns
