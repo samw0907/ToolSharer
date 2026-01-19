@@ -50,6 +50,12 @@ export default function CreateBorrowRequestForm({
   const [startDate, setStartDate] = useState<string>(defaults.start);
   const [dueDate, setDueDate] = useState<string>(defaults.due);
 
+  function setDueDateFromDays(days: number) {
+    const due = new Date();
+    due.setDate(due.getDate() + days);
+    setDueDate(toDateInputValue(due));
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSubmitting(true);
@@ -144,6 +150,36 @@ export default function CreateBorrowRequestForm({
             }}
           />
         </label>
+      </div>
+
+      <div style={{ marginBottom: "0.75rem" }}>
+        <span style={{ color: "#aaa", fontSize: "0.85em", marginRight: "0.5rem" }}>
+          Quick select:
+        </span>
+        {[
+          { label: "1 day", days: 1 },
+          { label: "3 days", days: 3 },
+          { label: "1 week", days: 7 },
+          { label: "2 weeks", days: 14 },
+        ].map((preset) => (
+          <button
+            key={preset.days}
+            type="button"
+            onClick={() => setDueDateFromDays(preset.days)}
+            style={{
+              marginRight: "0.5rem",
+              padding: "0.25rem 0.5rem",
+              fontSize: "0.85em",
+              backgroundColor: "#333",
+              border: "1px solid #555",
+              borderRadius: "4px",
+              color: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            {preset.label}
+          </button>
+        ))}
       </div>
 
       <div style={{ marginBottom: "0.5rem" }}>
