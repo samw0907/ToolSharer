@@ -21,11 +21,21 @@ def list_tools(
 ):
     tools = db.query(Tool).options(joinedload(Tool.owner)).all()
 
-    # Populate owner details for all tools
+    # Get pending request counts per tool
+    pending_counts = (
+        db.query(BorrowRequest.tool_id, func.count(BorrowRequest.id))
+        .filter(BorrowRequest.status == RequestStatus.PENDING)
+        .group_by(BorrowRequest.tool_id)
+        .all()
+    )
+    pending_count_map = {row[0]: row[1] for row in pending_counts}
+
+    # Populate owner details and pending counts for all tools
     for t in tools:
         if t.owner:
             setattr(t, "owner_email", t.owner.email)
             setattr(t, "owner_name", t.owner.full_name)
+        setattr(t, "pending_request_count", pending_count_map.get(t.id, 0))
 
     if current_user_id is None:
         return tools

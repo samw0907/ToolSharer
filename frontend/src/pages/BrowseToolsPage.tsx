@@ -14,6 +14,7 @@ interface Tool {
   is_borrowing?: boolean;
   owner_email?: string;
   owner_name?: string;
+  pending_request_count?: number;
 }
 
 interface BorrowRequest {
@@ -182,6 +183,11 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
                 <br />
                 <small>
                   Owner: {t.owner_name || t.owner_email || `User #${t.owner_id}`} | {t.is_available ? "Available" : "Not available"}
+                  {t.pending_request_count !== undefined && t.pending_request_count > 0 && (
+                    <span style={{ marginLeft: "0.5rem", color: "#ff9800" }}>
+                      | {t.pending_request_count} pending request{t.pending_request_count > 1 ? "s" : ""}
+                    </span>
+                  )}
                 </small>
 
                 <div style={{ marginTop: "0.5rem" }}>

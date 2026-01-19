@@ -33,5 +33,8 @@ class ToolRead(ToolBase):
     owner_email: str | None = None
     owner_name: str | None = None
 
+    # Pending requests count (for Browse Tools)
+    pending_request_count: int = 0
+
     class Config:
         from_attributes = True
