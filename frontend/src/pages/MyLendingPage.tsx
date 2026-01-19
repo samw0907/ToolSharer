@@ -272,7 +272,21 @@ export default function MyLendingPage({ ownerId, onRequestsChanged }: MyLendingP
         <CreateToolForm onCreated={handleToolCreated} />
 
         {tools.length === 0 ? (
-          <p>You don't own any tools yet.</p>
+          <div
+            style={{
+              padding: "1.5rem",
+              textAlign: "center",
+              backgroundColor: "#222",
+              borderRadius: "6px",
+              border: "1px dashed #444",
+              marginTop: "1rem",
+            }}
+          >
+            <p style={{ marginBottom: "0.5rem" }}>You haven't added any tools yet.</p>
+            <p style={{ color: "#aaa", fontSize: "0.9em" }}>
+              Use the form above to share your first tool with the community!
+            </p>
+          </div>
         ) : (
           <table
             style={{

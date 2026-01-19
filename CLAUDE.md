@@ -394,43 +394,40 @@ Not full microservices (too complex for scope), but service-oriented with server
 
 ### 🚧 In Progress / Next Up
 
-**Quick Win Polish Features (TIER 0 - Do First!):**
+**Quick Win Polish Features (TIER 0):**
 
 These small features add professional polish with minimal effort:
 
-1. **Show owner name/email instead of "Owner ID"** (5 min)
-   - Display `user.email` or `user.full_name` on tool cards
-   - Replace "Owner ID: 5" with "Owner: john@example.com"
+1. ✅ **Show owner name/email instead of "Owner ID"** - DONE (Session 2)
+   - Added `owner_email` and `owner_name` to ToolRead schema
+   - Display owner name/email on tool cards in Browse Tools
 
-2. **Notification counts on nav buttons** (15 min)
-   - "My Lending (3)" - count of pending requests needing approval
-   - "My Borrowing (2)" - count of overdue items or returns pending
-   - Visual indicator for actions needed
+2. ✅ **Notification counts on nav buttons** - DONE (Session 2)
+   - Red badge on "My Lending" for pending requests + returns to confirm
+   - Orange badge on "My Borrowing" for overdue items + pending returns
 
-3. **Basic search/filter on Browse Tools** (20 min)
+3. ✅ **Basic search/filter on Browse Tools** - DONE (Session 2)
    - Text input to filter by tool name or description
-   - Checkbox to hide unavailable tools
-   - Simple client-side filtering for now
+   - "Hide unavailable tools" checkbox
+   - Client-side filtering
 
-4. **Pending request count badge on tools** (10 min)
-   - Show "X pending requests" on tool cards when they exist
-   - Helps set expectations before requesting
+4. ✅ **Pending request count badge on tools** - DONE (Session 2)
+   - Shows "X pending request(s)" in orange on tool cards
+   - Added `pending_request_count` to backend
 
-5. **Request message preview on Browse Tools** (10 min)
-   - When you have a pending request, show your message preview
-   - Helps remember what you asked for
+5. ✅ **Request message preview on Browse Tools** - DONE (Session 2)
+   - Shows "Your message: ..." when user has pending request
+   - Added `my_pending_request_message` to backend
 
-6. **Due date quick presets** (15 min)
-   - Add preset buttons: "1 day", "3 days", "1 week", "2 weeks"
-   - Keep custom date picker as fallback
-   - Faster borrowing workflow
+6. ✅ **Due date quick presets** - DONE (Session 2)
+   - Preset buttons: "1 day", "3 days", "1 week", "2 weeks"
+   - Custom date picker still available
 
-7. **Empty states with helpful messages** (10 min)
-   - "No tools available yet. Be the first to share!" + [Add Tool] button
-   - "No pending requests. Check back soon!"
-   - Guides users on what to do next
-
-**Estimated Total: 1.5 hours for significant UX improvement**
+7. ✅ **Empty states with helpful messages** - DONE (Session 2)
+   - BrowseToolsPage: "No tools available yet" vs "No tools match your filters"
+   - MyLendingPage: "You haven't added any tools yet" with guidance
+   - MyBorrowingPage: "You haven't borrowed any tools yet" with guidance
+   - Styled consistently with dashed borders and helpful text
 
 ---
 
@@ -521,9 +518,15 @@ When discussing this project, emphasize:
   - Identified 7 quick-win polish features for TIER 0
   - Plan file: `C:\Users\swill\.claude\plans\agile-giggling-kite.md`
 
-- **Next Session**: Implement TIER 0 polish features (7 small UX improvements, ~1.5 hours total)
-  - Start with #1 (owner names) and work through the list
-  - Then proceed to TIER 1 (OAuth2)
+- **Session 2 (Jan 19, 2025)**: TIER 0 polish features complete
+  - All 7 quick-win UX improvements implemented
+  - Owner names on tool cards, notification badges, search/filter, pending counts, message previews, due date presets, empty states
+  - Fixed white-on-white text bug in success message boxes
+
+- **Next Session**: Proceed to TIER 1 priorities
+  - OAuth2 with Google (remove user selector)
+  - Database schema updates (geocoding fields)
+  - Docker + PostgreSQL setup
 
 ---
 

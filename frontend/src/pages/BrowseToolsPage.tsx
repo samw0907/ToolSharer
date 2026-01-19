@@ -150,7 +150,44 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {!loading && !error && filteredTools.length === 0 && (
-        <p>No tools available to borrow.</p>
+        <div
+          style={{
+            padding: "2rem",
+            textAlign: "center",
+            backgroundColor: "#1a1a1a",
+            borderRadius: "8px",
+            border: "1px dashed #444",
+          }}
+        >
+          {tools.length === 0 ? (
+            <>
+              <p style={{ fontSize: "1.1em", marginBottom: "0.5rem" }}>
+                No tools available yet.
+              </p>
+              <p style={{ color: "#aaa", marginBottom: "1rem" }}>
+                Be the first to share a tool with the community!
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  // Navigate to My Lending page where tools can be added
+                  window.dispatchEvent(new CustomEvent("navigate", { detail: "lending" }));
+                }}
+              >
+                Go to My Lending to add a tool
+              </button>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: "1.1em", marginBottom: "0.5rem" }}>
+                No tools match your filters.
+              </p>
+              <p style={{ color: "#aaa" }}>
+                Try adjusting your search or filter settings.
+              </p>
+            </>
+          )}
+        </div>
       )}
 
       {!loading && !error && filteredTools.length > 0 && (

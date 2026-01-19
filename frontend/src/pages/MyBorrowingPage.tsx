@@ -288,7 +288,23 @@ export default function MyBorrowingPage({
       )}
 
       {requests.length === 0 ? (
-        <p>You haven't made any requests yet.</p>
+        <div
+          style={{
+            padding: "2rem",
+            textAlign: "center",
+            backgroundColor: "#1a1a1a",
+            borderRadius: "8px",
+            border: "1px dashed #444",
+            marginTop: "1rem",
+          }}
+        >
+          <p style={{ fontSize: "1.1em", marginBottom: "0.5rem" }}>
+            You haven't borrowed any tools yet.
+          </p>
+          <p style={{ color: "#aaa" }}>
+            Head over to Browse Tools to find something you need!
+          </p>
+        </div>
       ) : (
         <>
           <div
