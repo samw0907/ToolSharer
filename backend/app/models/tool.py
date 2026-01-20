@@ -1,5 +1,5 @@
 # app/models/tool.py
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -11,7 +11,11 @@ class Tool(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    location = Column(String, nullable=True)
+
+    # Location (geocoded)
+    address = Column(String, nullable=True)  # What owner typed (replaces old 'location')
+    lat = Column(Float, nullable=True)  # Geocoded latitude
+    lng = Column(Float, nullable=True)  # Geocoded longitude
 
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     is_available = Column(Boolean, nullable=False, default=True)

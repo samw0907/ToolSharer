@@ -537,13 +537,21 @@ When discussing this project, emphasize:
   - Dev login tested and working (alice@example.com, bob@example.com, etc.)
   - Installed missing dependencies: httpx, python-jose, email-validator
 
-- **Next Steps** (TIER 1 priorities):
-  1. **Google OAuth setup** (optional for now - dev login works)
-     - Create credentials in Google Cloud Console
-     - Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env
-  2. **Geocoding & Maps** - location-aware features
+- **Session 3 (Jan 20, 2025)**: Geocoding backend complete
+  - Added geocoding fields to User model (home_address, home_lat, home_lng)
+  - Added geocoding fields to Tool model (address, lat, lng) - renamed from 'location'
+  - Created geocoding service using OpenStreetMap Nominatim (free, no API key)
+  - Created `/geo/geocode` endpoint (POST, converts address to lat/lng)
+  - Created `/geo/tools/near` endpoint (GET, radius search with Haversine distance)
+  - Created migration `20250120_add_geocoding_fields.py`
+  - Updated tool schemas to use 'address' instead of 'location'
+
+- **Next Steps**:
+  1. Run migration: `alembic upgrade head`
+  2. **Frontend map integration** - Install Leaflet, add map to Browse Tools
   3. **Docker + PostgreSQL** - production-ready database
   4. **Image uploads** - S3 integration for tool photos
+  5. **Google OAuth setup** (optional - dev login works)
 
 ---
 

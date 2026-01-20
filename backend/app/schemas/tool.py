@@ -5,7 +5,7 @@ from pydantic import BaseModel
 class ToolBase(BaseModel):
     name: str
     description: str | None = None
-    location: str | None = None
+    address: str | None = None  # Renamed from location
     owner_id: int
     is_available: bool = True
 
@@ -17,11 +17,15 @@ class ToolCreate(ToolBase):
 class ToolUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
-    location: str | None = None
+    address: str | None = None  # Renamed from location
 
 
 class ToolRead(ToolBase):
     id: int
+    # Geocoded coordinates
+    lat: float | None = None
+    lng: float | None = None
+
     has_pending_request: bool = False
     is_borrowing: bool = False
 
