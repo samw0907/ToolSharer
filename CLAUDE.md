@@ -557,3 +557,4 @@ When discussing this project, emphasize:
    - Could show due dates, pickup dates, return dates at a glance
    - Helps users plan around their tool availability
    - Potential libraries: react-big-calendar, FullCalendar, or custom with date-fns
+
