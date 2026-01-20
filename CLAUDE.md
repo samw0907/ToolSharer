@@ -220,12 +220,14 @@ Not full microservices (too complex for scope), but service-oriented with server
 - `GET /health` - Healthcheck
 - `GET /ping` - Ping endpoint
 
-### Auth & User (TODO)
-- `GET /auth/google/login` - Redirect to Google OAuth2 (no auth)
-- `GET /auth/google/callback` - Handle OAuth callback, create/find user, issue JWT (no auth)
-- `GET /me` - Get current user profile (auth required)
-- `PUT /me` - Update user profile (auth required)
-- `PUT /me/location` - Save home location (auth required)
+### Auth & User (IMPLEMENTED)
+- `GET /auth/google/login` - Redirect to Google OAuth2 (no auth) ✨ NEW
+- `GET /auth/google/callback` - Handle OAuth callback, create/find user, issue JWT (no auth) ✨ NEW
+- `POST /auth/dev/login` - Dev bypass login (no auth, only when DEV_AUTH_ENABLED=True) ✨ NEW
+- `GET /auth/me` - Get current user profile (auth required) ✨ NEW
+- `POST /auth/logout` - Logout (stateless JWT, client discards token) ✨ NEW
+- `PUT /me` - Update user profile (auth required) - TODO
+- `PUT /me/location` - Save home location (auth required) - TODO
 
 ### Users (IMPLEMENTED - basic)
 - `GET /users` - List all users (for demo user selector)
@@ -518,13 +520,24 @@ When discussing this project, emphasize:
   - Identified 7 quick-win polish features for TIER 0
   - Plan file: `C:\Users\swill\.claude\plans\agile-giggling-kite.md`
 
-- **Session 2 (Jan 19, 2025)**: TIER 0 polish features complete
+- **Session 2 (Jan 19, 2025)**: TIER 0 polish features complete + OAuth2 started
   - All 7 quick-win UX improvements implemented
   - Owner names on tool cards, notification badges, search/filter, pending counts, message previews, due date presets, empty states
   - Fixed white-on-white text bug in success message boxes
+  - Started OAuth2 implementation (TIER 1)
 
-- **Next Session**: Proceed to TIER 1 priorities
-  - OAuth2 with Google (remove user selector)
+- **Session 2 continued**: OAuth2 implementation complete
+  - Backend auth system: JWT tokens, Google OAuth endpoints, dev bypass login
+  - Added `google_sub` field to User model with migration
+  - Created auth router with: `/auth/google/login`, `/auth/google/callback`, `/auth/dev/login`, `/auth/me`, `/auth/logout`
+  - Created auth service with JWT token creation/validation
+  - Frontend auth flow: AuthContext, LoginPage, token storage in localStorage
+  - Replaced user selector dropdown with proper login/logout flow
+  - Login page supports both Google OAuth and dev bypass login
+
+- **Next Session**: Continue TIER 1 priorities
+  - Set up Google OAuth credentials (user needs to create in Google Cloud Console)
+  - Test full auth flow
   - Database schema updates (geocoding fields)
   - Docker + PostgreSQL setup
 

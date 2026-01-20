@@ -1,17 +1,13 @@
 // src/App.tsx
-import { useEffect, useState, ChangeEvent } from "react";
+import { useEffect, useState } from "react";
 import BrowseToolsPage from "./pages/BrowseToolsPage";
 import MyLendingPage from "./pages/MyLendingPage";
 import MyBorrowingPage from "./pages/MyBorrowingPage";
+import LoginPage from "./pages/LoginPage";
+import { useAuth } from "./context/AuthContext";
 import { apiGet } from "./lib/api";
 
 type View = "browse" | "lending" | "borrowing";
-
-interface User {
-  id: number;
-  email: string;
-  full_name: string | null;
-}
 
 interface BorrowRequestForCount {
   id: number;
@@ -21,10 +17,8 @@ interface BorrowRequestForCount {
 }
 
 function App() {
+  const { user, isLoading, logout } = useAuth();
   const [view, setView] = useState<View>("browse");
-  const [currentUserId, setCurrentUserId] = useState<number>(1);
-  const [users, setUsers] = useState<User[]>([]);
-  const [usersError, setUsersError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState<number>(0);
   const [lendingCount, setLendingCount] = useState<number>(0);
   const [borrowingCount, setBorrowingCount] = useState<number>(0);
@@ -35,10 +29,10 @@ function App() {
 
   // Fetch notification counts
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!user) return;
 
     // Fetch owner's incoming requests (for lending count)
-    apiGet<BorrowRequestForCount[]>(`/borrow_requests/owner/${currentUserId}`)
+    apiGet<BorrowRequestForCount[]>(`/borrow_requests/owner/${user.id}`)
       .then((data) => {
         // Count PENDING (need approval) + RETURN_PENDING (need confirmation)
         const actionNeeded = data.filter(
@@ -52,7 +46,7 @@ function App() {
       });
 
     // Fetch borrower's requests (for borrowing count)
-    apiGet<BorrowRequestForCount[]>(`/borrow_requests/borrower/${currentUserId}`)
+    apiGet<BorrowRequestForCount[]>(`/borrow_requests/borrower/${user.id}`)
       .then((data) => {
         // Count overdue items + RETURN_PENDING (waiting for owner)
         const actionNeeded = data.filter(
@@ -66,33 +60,27 @@ function App() {
         console.error("Failed to fetch borrowing counts:", err);
         setBorrowingCount(0);
       });
-  }, [currentUserId, reloadToken]);
+  }, [user, reloadToken]);
 
-  useEffect(() => {
-    apiGet<User[]>("/users")
-      .then((data) => {
-        setUsers(data);
-        setUsersError(null);
+  // Show loading spinner while checking auth
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        Loading...
+      </div>
+    );
+  }
 
-        if (data.length > 0) {
-          setCurrentUserId((prev) => {
-            const exists = data.some((u) => u.id === prev);
-            return exists ? prev : data[0].id;
-          });
-        }
-      })
-      .catch((err: unknown) => {
-        console.error(err);
-        setUsersError("Failed to load users.");
-      });
-  }, []);
-
-  function handleUserSelectChange(e: ChangeEvent<HTMLSelectElement>) {
-    const value = Number(e.target.value);
-    if (!Number.isNaN(value) && value > 0) {
-      setCurrentUserId(value);
-      notifyDataChanged();
-    }
+  // Show login page if not authenticated
+  if (!user) {
+    return <LoginPage />;
   }
 
   return (
@@ -209,30 +197,30 @@ function App() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <label style={{ color: "#fff" }}>
-              Current user:{" "}
-              <select
-                value={currentUserId}
-                onChange={handleUserSelectChange}
-                style={{ padding: "0.25rem 0.5rem" }}
-                disabled={users.length === 0}
-              >
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.email} (#{u.id})
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            {usersError && <span style={{ color: "red" }}>{usersError}</span>}
+            <span style={{ color: "#fff" }}>
+              {user.full_name || user.email}
+            </span>
+            <button
+              type="button"
+              onClick={logout}
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "4px",
+                border: "1px solid #ccc",
+                backgroundColor: "#fff",
+                color: "#333",
+                cursor: "pointer",
+              }}
+            >
+              Logout
+            </button>
           </div>
         </div>
       </header>
 
-      {view === "browse" && <BrowseToolsPage currentUserId={currentUserId} reloadToken={reloadToken} />}
-      {view === "lending" && <MyLendingPage ownerId={currentUserId} onRequestsChanged={notifyDataChanged} />}
-      {view === "borrowing" && <MyBorrowingPage borrowerId={currentUserId} onRequestsChanged={notifyDataChanged} />}
+      {view === "browse" && <BrowseToolsPage currentUserId={user.id} reloadToken={reloadToken} />}
+      {view === "lending" && <MyLendingPage ownerId={user.id} onRequestsChanged={notifyDataChanged} />}
+      {view === "borrowing" && <MyBorrowingPage borrowerId={user.id} onRequestsChanged={notifyDataChanged} />}
     </div>
   );
 }

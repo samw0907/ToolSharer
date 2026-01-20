@@ -1,7 +1,7 @@
 # app/api/routes.py
 from fastapi import APIRouter
 
-from app.api import users, tools, borrow_requests
+from app.api import auth, users, tools, borrow_requests
 
 router = APIRouter()
 
@@ -10,6 +10,9 @@ router = APIRouter()
 async def ping():
     return {"message": "pong"}
 
+
+# Auth
+router.include_router(auth.router)
 
 # Users
 router.include_router(users.router)

@@ -10,7 +10,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     full_name = Column(String, nullable=True)
-    
+    google_sub = Column(String, unique=True, index=True, nullable=True)  # Google OAuth subject ID
+
     # A user can own many tools
     tools = relationship("Tool", back_populates="owner")
 
