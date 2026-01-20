@@ -526,7 +526,7 @@ When discussing this project, emphasize:
   - Fixed white-on-white text bug in success message boxes
   - Started OAuth2 implementation (TIER 1)
 
-- **Session 2 continued**: OAuth2 implementation complete
+- **Session 2 continued (Jan 19, 2025)**: OAuth2 implementation complete
   - Backend auth system: JWT tokens, Google OAuth endpoints, dev bypass login
   - Added `google_sub` field to User model with migration
   - Created auth router with: `/auth/google/login`, `/auth/google/callback`, `/auth/dev/login`, `/auth/me`, `/auth/logout`
@@ -534,12 +534,16 @@ When discussing this project, emphasize:
   - Frontend auth flow: AuthContext, LoginPage, token storage in localStorage
   - Replaced user selector dropdown with proper login/logout flow
   - Login page supports both Google OAuth and dev bypass login
+  - Dev login tested and working (alice@example.com, bob@example.com, etc.)
+  - Installed missing dependencies: httpx, python-jose, email-validator
 
-- **Next Session**: Continue TIER 1 priorities
-  - Set up Google OAuth credentials (user needs to create in Google Cloud Console)
-  - Test full auth flow
-  - Database schema updates (geocoding fields)
-  - Docker + PostgreSQL setup
+- **Next Steps** (TIER 1 priorities):
+  1. **Google OAuth setup** (optional for now - dev login works)
+     - Create credentials in Google Cloud Console
+     - Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env
+  2. **Geocoding & Maps** - location-aware features
+  3. **Docker + PostgreSQL** - production-ready database
+  4. **Image uploads** - S3 integration for tool photos
 
 ---
 
