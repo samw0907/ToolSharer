@@ -1,5 +1,5 @@
 // src/components/ToolsMap.tsx
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import { Icon } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -7,6 +7,16 @@ import "leaflet/dist/leaflet.css";
 const defaultIcon = new Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+// User location marker (different color)
+const userIcon = new Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
@@ -23,6 +33,7 @@ interface Tool {
   is_available: boolean;
   owner_name?: string;
   owner_email?: string;
+  distance_km?: number;
 }
 
 interface ToolsMapProps {
@@ -31,6 +42,9 @@ interface ToolsMapProps {
   centerLat?: number;
   centerLng?: number;
   zoom?: number;
+  userLat?: number | null;
+  userLng?: number | null;
+  radiusKm?: number;
 }
 
 export default function ToolsMap({
@@ -39,19 +53,25 @@ export default function ToolsMap({
   centerLat = 39.8283, // Default: center of USA
   centerLng = -98.5795,
   zoom = 4,
+  userLat = null,
+  userLng = null,
+  radiusKm,
 }: ToolsMapProps) {
   // Filter tools that have valid coordinates
   const toolsWithLocation = tools.filter(
     (t) => t.lat != null && t.lng != null && !isNaN(t.lat) && !isNaN(t.lng)
   );
 
-  // If there are tools with locations, center on the first one
-  const mapCenter: [number, number] =
-    toolsWithLocation.length > 0
+  const hasUserLocation = userLat != null && userLng != null;
+
+  // Center on user location if available, otherwise first tool, otherwise default
+  const mapCenter: [number, number] = hasUserLocation
+    ? [userLat, userLng]
+    : toolsWithLocation.length > 0
       ? [toolsWithLocation[0].lat!, toolsWithLocation[0].lng!]
       : [centerLat, centerLng];
 
-  const mapZoom = toolsWithLocation.length > 0 ? 10 : zoom;
+  const mapZoom = hasUserLocation ? 11 : toolsWithLocation.length > 0 ? 10 : zoom;
 
   return (
     <div style={{ height, width: "100%", marginBottom: "1rem" }}>
@@ -80,6 +100,27 @@ export default function ToolsMap({
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          {/* User location marker and radius circle */}
+          {hasUserLocation && (
+            <>
+              <Marker position={[userLat, userLng]} icon={userIcon}>
+                <Popup>
+                  <strong>Your location</strong>
+                </Popup>
+              </Marker>
+              {radiusKm && (
+                <Circle
+                  center={[userLat, userLng]}
+                  radius={radiusKm * 1000} // Convert km to meters
+                  pathOptions={{
+                    color: "#4caf50",
+                    fillColor: "#4caf50",
+                    fillOpacity: 0.1,
+                  }}
+                />
+              )}
+            </>
+          )}
           {toolsWithLocation.map((tool) => (
             <Marker
               key={tool.id}
@@ -95,6 +136,14 @@ export default function ToolsMap({
                   <small>
                     Owner: {tool.owner_name || tool.owner_email || "Unknown"}
                   </small>
+                  {tool.distance_km !== undefined && (
+                    <>
+                      <br />
+                      <small style={{ color: "#4caf50" }}>
+                        {tool.distance_km} km away
+                      </small>
+                    </>
+                  )}
                   <br />
                   <span
                     style={{

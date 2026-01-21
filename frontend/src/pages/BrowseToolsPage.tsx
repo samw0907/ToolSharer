@@ -20,6 +20,7 @@ interface Tool {
   owner_name?: string;
   pending_request_count?: number;
   my_pending_request_message?: string;
+  distance_km?: number;
 }
 
 interface BorrowRequest {
@@ -47,6 +48,14 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
   const [searchQuery, setSearchQuery] = useState("");
   const [hideUnavailable, setHideUnavailable] = useState(false);
 
+  // "Tools near me" state
+  const [nearbyMode, setNearbyMode] = useState(false);
+  const [userLat, setUserLat] = useState<number | null>(null);
+  const [userLng, setUserLng] = useState<number | null>(null);
+  const [radiusKm, setRadiusKm] = useState(10);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [locatingUser, setLocatingUser] = useState(false);
+
   function loadTools() {
     setLoading(true);
     apiGet<Tool[]>(`/tools?current_user_id=${currentUserId}`)
@@ -61,6 +70,85 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
       .finally(() => {
         setLoading(false);
       });
+  }
+
+  function loadNearbyTools(lat: number, lng: number, radius: number) {
+    setLoading(true);
+    apiGet<Tool[]>(`/geo/tools/near?lat=${lat}&lng=${lng}&radius_km=${radius}`)
+      .then((data) => {
+        setTools(data);
+        setError(null);
+      })
+      .catch((err: unknown) => {
+        console.error(err);
+        setError("Failed to load nearby tools.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
+
+  function getUserLocation() {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setLocatingUser(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLat(latitude);
+        setUserLng(longitude);
+        setLocatingUser(false);
+        setNearbyMode(true);
+        loadNearbyTools(latitude, longitude, radiusKm);
+      },
+      (err) => {
+        setLocatingUser(false);
+        switch (err.code) {
+          case err.PERMISSION_DENIED:
+            setLocationError("Location access denied. Please enable location permissions.");
+            break;
+          case err.POSITION_UNAVAILABLE:
+            setLocationError("Location information unavailable.");
+            break;
+          case err.TIMEOUT:
+            setLocationError("Location request timed out.");
+            break;
+          default:
+            setLocationError("An unknown error occurred getting location.");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+    );
+  }
+
+  function handleNearbyToggle() {
+    if (nearbyMode) {
+      // Turn off nearby mode, reload all tools
+      setNearbyMode(false);
+      loadTools();
+    } else {
+      // Turn on nearby mode
+      if (userLat !== null && userLng !== null) {
+        // Already have location, just switch mode
+        setNearbyMode(true);
+        loadNearbyTools(userLat, userLng, radiusKm);
+      } else {
+        // Need to get location first
+        getUserLocation();
+      }
+    }
+  }
+
+  function handleRadiusChange(newRadius: number) {
+    setRadiusKm(newRadius);
+    if (nearbyMode && userLat !== null && userLng !== null) {
+      loadNearbyTools(userLat, userLng, newRadius);
+    }
   }
 
   useEffect(() => {
@@ -115,7 +203,7 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
         />
       </div>
 
-      <div style={{ marginBottom: "1rem", display: "flex", gap: "1.5rem" }}>
+      <div style={{ marginBottom: "1rem", display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
         <label>
           <input
             type="checkbox"
@@ -132,6 +220,71 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
           />
           {" "}Show my own tools
         </label>
+      </div>
+
+      {/* Tools near me controls */}
+      <div
+        style={{
+          marginBottom: "1rem",
+          padding: "1rem",
+          backgroundColor: "#1a1a1a",
+          borderRadius: "8px",
+          border: "1px solid #333",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={handleNearbyToggle}
+            disabled={locatingUser}
+            style={{
+              backgroundColor: nearbyMode ? "#4caf50" : "#333",
+              color: "#fff",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "4px",
+              cursor: locatingUser ? "wait" : "pointer",
+            }}
+          >
+            {locatingUser ? "Getting location..." : nearbyMode ? "Nearby mode ON" : "Tools near me"}
+          </button>
+
+          {nearbyMode && (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <label htmlFor="radius-select">Radius:</label>
+              <select
+                id="radius-select"
+                value={radiusKm}
+                onChange={(e) => handleRadiusChange(Number(e.target.value))}
+                style={{
+                  padding: "0.4rem",
+                  borderRadius: "4px",
+                  border: "1px solid #555",
+                  backgroundColor: "#111",
+                  color: "#fff",
+                }}
+              >
+                <option value={5}>5 km</option>
+                <option value={10}>10 km</option>
+                <option value={25}>25 km</option>
+                <option value={50}>50 km</option>
+                <option value={100}>100 km</option>
+              </select>
+            </div>
+          )}
+
+          {nearbyMode && userLat !== null && userLng !== null && (
+            <span style={{ color: "#aaa", fontSize: "0.9em" }}>
+              Your location: {userLat.toFixed(4)}, {userLng.toFixed(4)}
+            </span>
+          )}
+        </div>
+
+        {locationError && (
+          <p style={{ color: "#f44336", marginTop: "0.5rem", marginBottom: 0 }}>
+            {locationError}
+          </p>
+        )}
       </div>
 
       {lastRequest && (
@@ -152,7 +305,13 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
 
       {/* Map showing tool locations */}
       {!loading && !error && filteredTools.length > 0 && (
-        <ToolsMap tools={filteredTools} height="350px" />
+        <ToolsMap
+          tools={filteredTools}
+          height="350px"
+          userLat={userLat}
+          userLng={userLng}
+          radiusKm={nearbyMode ? radiusKm : undefined}
+        />
       )}
 
       {loading && <p>Loading tools...</p>}
@@ -230,6 +389,11 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
                 <br />
                 <small>
                   Owner: {t.owner_name || t.owner_email || `User #${t.owner_id}`} | {t.is_available ? "Available" : "Not available"}
+                  {t.distance_km !== undefined && (
+                    <span style={{ marginLeft: "0.5rem", color: "#4caf50" }}>
+                      | {t.distance_km} km away
+                    </span>
+                  )}
                   {t.pending_request_count !== undefined && t.pending_request_count > 0 && (
                     <span style={{ marginLeft: "0.5rem", color: "#ff9800" }}>
                       | {t.pending_request_count} pending request{t.pending_request_count > 1 ? "s" : ""}
