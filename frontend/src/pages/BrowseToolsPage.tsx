@@ -2,12 +2,16 @@
 import { useEffect, useState } from "react";
 import { apiGet } from "../lib/api";
 import CreateBorrowRequestForm from "../components/CreateBorrowRequestForm";
+import ToolsMap from "../components/ToolsMap";
 
 interface Tool {
   id: number;
   name: string;
   description: string;
   location: string;
+  address?: string;
+  lat?: number | null;
+  lng?: number | null;
   owner_id: number;
   is_available: boolean;
   has_pending_request?: boolean;
@@ -144,6 +148,11 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
           <strong>Borrow request created:</strong> "{lastRequest.message}" for
           tool #{lastRequest.tool_id} (status: {lastRequest.status})
         </div>
+      )}
+
+      {/* Map showing tool locations */}
+      {!loading && !error && filteredTools.length > 0 && (
+        <ToolsMap tools={filteredTools} height="350px" />
       )}
 
       {loading && <p>Loading tools...</p>}
