@@ -6,7 +6,9 @@ interface Tool {
   id: number;
   name: string;
   description: string;
-  location: string;
+  address: string;
+  lat?: number | null;
+  lng?: number | null;
   owner_id: number;
   is_available: boolean;
 }
@@ -18,7 +20,9 @@ interface CreateToolFormProps {
 export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
+  const [address, setAddress] = useState("");
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
   const [ownerId, setOwnerId] = useState("1");
   const [isAvailable, setIsAvailable] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -33,7 +37,9 @@ export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
       const payload = {
         name,
         description,
-        location,
+        address,
+        lat,
+        lng,
         owner_id: Number(ownerId),
         is_available: isAvailable,
       };
@@ -44,7 +50,9 @@ export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
       // reset form
       setName("");
       setDescription("");
-      setLocation("");
+      setAddress("");
+      setLat(null);
+      setLng(null);
       setIsAvailable(true);
     } catch (err) {
       console.error(err);
@@ -96,16 +104,22 @@ export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
 
       <div style={{ marginBottom: "0.5rem" }}>
         <label>
-          Location
+          Address
           <br />
           <input
             type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="e.g., 123 Main St, Seattle, WA"
             required
             style={{ width: "100%" }}
           />
         </label>
+        {lat !== null && lng !== null && (
+          <small style={{ color: "#4caf50" }}>
+            Coordinates: {lat.toFixed(4)}, {lng.toFixed(4)}
+          </small>
+        )}
       </div>
 
       <div style={{ marginBottom: "0.5rem" }}>
