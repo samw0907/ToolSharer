@@ -27,6 +27,33 @@ export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
   const [isAvailable, setIsAvailable] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+
+  async function handleGeocode() {
+    if (!address.trim()) {
+      setGeocodeError("Please enter an address first.");
+      return;
+    }
+
+    setGeocoding(true);
+    setGeocodeError(null);
+
+    try {
+      const result = await apiPost<{ lat: number; lng: number; formatted_address: string }>(
+        "/geo/geocode",
+        { address }
+      );
+      setLat(result.lat);
+      setLng(result.lng);
+      setAddress(result.formatted_address);
+    } catch (err) {
+      console.error(err);
+      setGeocodeError("Could not find coordinates for this address.");
+    } finally {
+      setGeocoding(false);
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -106,18 +133,38 @@ export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
         <label>
           Address
           <br />
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="e.g., 123 Main St, Seattle, WA"
-            required
-            style={{ width: "100%" }}
-          />
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                // Clear coordinates when address changes
+                setLat(null);
+                setLng(null);
+              }}
+              placeholder="e.g., 123 Main St, Seattle, WA"
+              required
+              style={{ flex: 1 }}
+            />
+            <button
+              type="button"
+              onClick={handleGeocode}
+              disabled={geocoding || !address.trim()}
+              style={{ whiteSpace: "nowrap" }}
+            >
+              {geocoding ? "Looking up..." : "Lookup"}
+            </button>
+          </div>
         </label>
         {lat !== null && lng !== null && (
-          <small style={{ color: "#4caf50" }}>
+          <small style={{ color: "#4caf50", display: "block", marginTop: "0.25rem" }}>
             Coordinates: {lat.toFixed(4)}, {lng.toFixed(4)}
+          </small>
+        )}
+        {geocodeError && (
+          <small style={{ color: "#f44336", display: "block", marginTop: "0.25rem" }}>
+            {geocodeError}
           </small>
         )}
       </div>
