@@ -1,11 +1,13 @@
 import { FormEvent, useState } from "react";
-import { apiPut } from "../lib/api";
+import { apiPost, apiPut } from "../lib/api";
 
 interface Tool {
   id: number;
   name: string;
   description: string;
-  location: string;
+  address: string;
+  lat?: number | null;
+  lng?: number | null;
   owner_id: number;
   is_available: boolean;
 }
@@ -19,9 +21,38 @@ interface EditToolFormProps {
 export default function EditToolForm({ tool, onUpdated, onCancel }: EditToolFormProps) {
   const [name, setName] = useState(tool.name);
   const [description, setDescription] = useState(tool.description);
-  const [location, setLocation] = useState(tool.location);
+  const [address, setAddress] = useState(tool.address || "");
+  const [lat, setLat] = useState<number | null>(tool.lat ?? null);
+  const [lng, setLng] = useState<number | null>(tool.lng ?? null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+
+  async function handleGeocode() {
+    if (!address.trim()) {
+      setGeocodeError("Please enter an address first.");
+      return;
+    }
+
+    setGeocoding(true);
+    setGeocodeError(null);
+
+    try {
+      const result = await apiPost<{ lat: number; lng: number; formatted_address: string }>(
+        "/geo/geocode",
+        { address }
+      );
+      setLat(result.lat);
+      setLng(result.lng);
+      setAddress(result.formatted_address);
+    } catch (err) {
+      console.error(err);
+      setGeocodeError("Could not find coordinates for this address.");
+    } finally {
+      setGeocoding(false);
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -32,7 +63,9 @@ export default function EditToolForm({ tool, onUpdated, onCancel }: EditToolForm
       const payload = {
         name,
         description,
-        location,
+        address,
+        lat,
+        lng,
       };
 
       const updated = await apiPut<Tool>(`/tools/${tool.id}`, payload);
@@ -88,16 +121,41 @@ export default function EditToolForm({ tool, onUpdated, onCancel }: EditToolForm
 
       <div style={{ marginBottom: "0.5rem" }}>
         <label>
-          Location
+          Address
           <br />
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            required
-            style={{ width: "100%", padding: "0.4rem" }}
-          />
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                setLat(null);
+                setLng(null);
+              }}
+              placeholder="e.g., 123 Main St, Seattle, WA"
+              required
+              style={{ flex: 1, padding: "0.4rem" }}
+            />
+            <button
+              type="button"
+              onClick={handleGeocode}
+              disabled={geocoding || !address.trim()}
+              style={{ whiteSpace: "nowrap" }}
+            >
+              {geocoding ? "Looking up..." : "Lookup"}
+            </button>
+          </div>
         </label>
+        {lat !== null && lng !== null && (
+          <small style={{ color: "#4caf50", display: "block", marginTop: "0.25rem" }}>
+            Coordinates: {lat.toFixed(4)}, {lng.toFixed(4)}
+          </small>
+        )}
+        {geocodeError && (
+          <small style={{ color: "#f44336", display: "block", marginTop: "0.25rem" }}>
+            {geocodeError}
+          </small>
+        )}
       </div>
 
       {error && (
