@@ -365,7 +365,7 @@ Not full microservices (too complex for scope), but service-oriented with server
 
 ## Current Project Status
 
-**Progress: ~30% Complete** (Updated: Jan 17, 2025)
+**Progress: ~45% Complete** (Updated: Jan 27, 2025)
 
 ### ✅ Completed (Session 1 - UX Overhaul)
 
@@ -434,13 +434,13 @@ These small features add professional polish with minimal effort:
 ---
 
 **Immediate Priority (TIER 1):**
-1. OAuth2 with Google (remove user selector)
-2. Database schema updates (add missing fields for geocoding)
-3. Docker + PostgreSQL setup
+1. ✅ OAuth2 with Google (remove user selector) - DONE (Session 2)
+2. ✅ Database schema updates (add missing fields for geocoding) - DONE (Session 3)
+3. 🚧 Docker + PostgreSQL setup - PARTIALLY DONE (Session 4: files created, need config update + testing)
 4. Lambda functions (image processing, overdue reminders)
 
 **Secondary Priority (TIER 2):**
-5. Geospatial features (geocoding, maps, radius search)
+5. ✅ Geospatial features (geocoding, maps, radius search) - DONE (Sessions 3+4: backend + frontend)
 6. AI integration (Smart Tool Helper)
 
 **Deployment (TIER 3):**
@@ -546,12 +546,38 @@ When discussing this project, emphasize:
   - Created migration `20250120_add_geocoding_fields.py`
   - Updated tool schemas to use 'address' instead of 'location'
 
+- **Session 4 (Jan 27, 2025)**: Geolocation frontend + Docker setup
+  - **Leaflet map integration**:
+    - Installed leaflet, react-leaflet, @types/leaflet
+    - Created `ToolsMap` component with OpenStreetMap tiles and tool markers
+    - Added map to Browse Tools page showing tool locations with popups
+  - **"Tools near me" feature**:
+    - Browser geolocation support (navigator.geolocation)
+    - Nearby mode toggle button with radius selector (5/10/25/50/100 km)
+    - Calls `/geo/tools/near` API endpoint when enabled
+    - User location shown as red marker with green radius circle on map
+    - Distance displayed on tool cards and map popups
+    - Error handling for denied permissions, unavailable location, timeouts
+  - **Address geocoding in forms**:
+    - Updated CreateToolForm: renamed `location` to `address`, added lat/lng fields
+    - Updated EditToolForm: same address/lat/lng changes
+    - Both forms have "Lookup" button that calls `/geo/geocode` API
+    - Shows resolved coordinates after lookup, clears when address is edited
+  - **Docker + PostgreSQL setup**:
+    - Created `backend/Dockerfile` (Python 3.11-slim, uvicorn)
+    - Created `docker-compose.yml` (PostgreSQL 15 + backend with hot-reload)
+    - Created `backend/.dockerignore`
+    - Created `backend/.env.example` template
+    - Fixed `requirements.txt` encoding (was UTF-16, now clean UTF-8)
+    - Added missing deps: httpx, python-jose, email-validator
+
 - **Next Steps**:
-  1. Run migration: `alembic upgrade head`
-  2. **Frontend map integration** - Install Leaflet, add map to Browse Tools
-  3. **Docker + PostgreSQL** - production-ready database
-  4. **Image uploads** - S3 integration for tool photos
-  5. **Google OAuth setup** (optional - dev login works)
+  1. **Update backend config** to support DATABASE_URL for PostgreSQL
+  2. **Test Docker setup** - `docker-compose up` and verify PostgreSQL works
+  3. **Image uploads** - S3 integration for tool photos
+  4. **Lambda functions** - image processing, overdue reminders
+  5. **AI integration** - Smart Tool Helper (Vercel AI SDK)
+  6. **Google OAuth setup** (optional - dev login works)
 
 ---
 
