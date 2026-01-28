@@ -50,8 +50,8 @@ interface ToolsMapProps {
 export default function ToolsMap({
   tools,
   height = "400px",
-  centerLat = 39.8283, // Default: center of USA
-  centerLng = -98.5795,
+  centerLat = 60.1699, // Default: Helsinki
+  centerLng = 24.9384,
   zoom = 4,
   userLat = null,
   userLng = null,
@@ -75,23 +75,7 @@ export default function ToolsMap({
 
   return (
     <div style={{ height, width: "100%", marginBottom: "1rem" }}>
-      {toolsWithLocation.length === 0 ? (
-        <div
-          style={{
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#1a1a1a",
-            borderRadius: "8px",
-            border: "1px dashed #444",
-            color: "#aaa",
-          }}
-        >
-          No tools with location data to display on map.
-        </div>
-      ) : (
-        <MapContainer
+      <MapContainer
           center={mapCenter}
           zoom={mapZoom}
           style={{ height: "100%", width: "100%", borderRadius: "8px" }}
@@ -158,7 +142,6 @@ export default function ToolsMap({
             </Marker>
           ))}
         </MapContainer>
-      )}
     </div>
   );
 }

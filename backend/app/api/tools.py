@@ -105,6 +105,8 @@ def create_tool(payload: ToolCreate, db: Session = Depends(get_db)):
         name=payload.name,
         description=payload.description,
         address=payload.address,
+        lat=payload.lat,
+        lng=payload.lng,
         owner_id=payload.owner_id,
         is_available=payload.is_available,
     )
@@ -127,6 +129,10 @@ def update_tool(tool_id: int, payload: ToolUpdate, db: Session = Depends(get_db)
         tool.description = payload.description
     if payload.address is not None:
         tool.address = payload.address
+    if payload.lat is not None:
+        tool.lat = payload.lat
+    if payload.lng is not None:
+        tool.lng = payload.lng
 
     db.commit()
     db.refresh(tool)

@@ -303,8 +303,8 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
         </div>
       )}
 
-      {/* Map showing tool locations */}
-      {!loading && !error && filteredTools.length > 0 && (
+      {/* Map showing tool locations - always show map even with no tools */}
+      {!loading && !error && (
         <ToolsMap
           tools={filteredTools}
           height="350px"

@@ -11,13 +11,16 @@ class ToolBase(BaseModel):
 
 
 class ToolCreate(ToolBase):
-    pass
+    lat: float | None = None
+    lng: float | None = None
 
 
 class ToolUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
     address: str | None = None  # Renamed from location
+    lat: float | None = None
+    lng: float | None = None
 
 
 class ToolRead(ToolBase):
