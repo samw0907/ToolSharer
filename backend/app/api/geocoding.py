@@ -4,7 +4,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 
-from app.core.auth import get_current_user
+from app.core.auth import get_optional_current_user
 from app.db.session import get_db
 from app.models.tool import Tool
 from app.models.user import User
@@ -17,7 +17,6 @@ router = APIRouter(prefix="/geo", tags=["geocoding"])
 @router.post("/geocode", response_model=GeocodeResponse)
 async def geocode(
     request: GeocodeRequest,
-    current_user: User = Depends(get_current_user),
 ):
     """
     Convert an address string to lat/lng coordinates.
@@ -44,7 +43,7 @@ def get_nearby_tools(
     lng: float = Query(..., description="Longitude of search center"),
     radius_km: float = Query(10.0, description="Search radius in kilometers"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_optional_current_user),
 ):
     """
     Get tools within a specified radius of a location.

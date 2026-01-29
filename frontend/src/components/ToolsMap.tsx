@@ -52,7 +52,7 @@ export default function ToolsMap({
   height = "400px",
   centerLat = 60.1699, // Default: Helsinki
   centerLng = 24.9384,
-  zoom = 4,
+  zoom = 12,
   userLat = null,
   userLng = null,
   radiusKm,
