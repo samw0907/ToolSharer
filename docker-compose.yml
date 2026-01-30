@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: toolsharer_dev
       POSTGRES_DB: toolsharer
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -24,7 +24,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://toolsharer:toolsharer_dev@db:5432/toolsharer
+      - DATABASE_URL=postgresql+psycopg://toolsharer:toolsharer_dev@db:5432/toolsharer
       - APP_NAME=ToolSharer
       - DEV_AUTH_ENABLED=True
     depends_on:

@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('tool_id', sa.Integer(), nullable=False),
     sa.Column('borrower_id', sa.Integer(), nullable=False),
     sa.Column('message', sa.Text(), nullable=True),
-    sa.Column('status', sa.Enum('PENDING', 'APPROVED', 'DECLINED', 'CANCELLED', name='request_status'), nullable=False),
+    sa.Column('status', sa.Enum('PENDING', 'APPROVED', 'DECLINED', 'CANCELLED', 'RETURN_PENDING', 'RETURNED', name='request_status'), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['borrower_id'], ['users.id'], ),

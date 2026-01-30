@@ -585,7 +585,12 @@ When discussing this project, emphasize:
 
 *Features and enhancements to consider after core functionality is complete. These are not committed to the current scope but worth revisiting.*
 
-1. **Calendar View for Borrows/Lends**
+1. **Map Popup Borrow Action**
+   - Add a "Request to Borrow" button inside map marker popups
+   - Clicking navigates to the full borrow request form (with calendar date pickers etc.)
+   - Provides a more integrated map-first browsing experience
+
+2. **Calendar View for Borrows/Lends**
    - Visual calendar showing borrow and lending activity
    - Color-coded entries: one color for items you're borrowing, another for items you're lending out
    - Could show due dates, pickup dates, return dates at a glance

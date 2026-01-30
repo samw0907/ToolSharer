@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("location", sa.String(), nullable=True),
         sa.Column("owner_id", sa.Integer(), nullable=False),
-        sa.Column("is_available", sa.Boolean(), nullable=False, server_default=sa.text("1")),
+        sa.Column("is_available", sa.Boolean(), nullable=False, server_default=sa.text("true")),
         sa.ForeignKeyConstraint(["owner_id"], ["users.id"]),
     )
     op.create_index("ix_tools_id", "tools", ["id"])
