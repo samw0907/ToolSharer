@@ -365,13 +365,13 @@ Not full microservices (too complex for scope), but service-oriented with server
 
 ## Current Project Status
 
-**Progress: ~45% Complete** (Updated: Jan 27, 2025)
+**Progress: ~55% Complete** (Updated: Jan 30, 2025)
 
 ### ✅ Completed (Session 1 - UX Overhaul)
 
 **Backend:**
 - FastAPI app structure with routers, models, schemas, services
-- SQLAlchemy ORM + Alembic migrations (5 migrations total)
+- SQLAlchemy ORM + Alembic migrations (7 migrations total)
 - 27 API endpoints for users, tools, and borrow requests
 - BorrowRequest model with approval workflow (PENDING → APPROVED → RETURN_PENDING → RETURNED)
 - Two-step return endpoints (initiate-return, confirm-return)
@@ -390,9 +390,10 @@ Not full microservices (too complex for scope), but service-oriented with server
 - User selector for testing (will be replaced with OAuth2)
 
 **Database:**
-- SQLite (local development)
+- PostgreSQL 15 via Docker Compose (production-ready)
+- SQLite still available for local-only development
 - Users, Tools, BorrowRequests tables
-- Status enum includes RETURN_PENDING
+- Status enum includes RETURN_PENDING and RETURNED
 
 ### 🚧 In Progress / Next Up
 
@@ -436,11 +437,11 @@ These small features add professional polish with minimal effort:
 **Immediate Priority (TIER 1):**
 1. ✅ OAuth2 with Google (remove user selector) - DONE (Session 2)
 2. ✅ Database schema updates (add missing fields for geocoding) - DONE (Session 3)
-3. 🚧 Docker + PostgreSQL setup - PARTIALLY DONE (Session 4: files created, need config update + testing)
+3. ✅ Docker + PostgreSQL setup - DONE (Session 5: fully working, all migrations pass on PostgreSQL)
 4. Lambda functions (image processing, overdue reminders)
 
 **Secondary Priority (TIER 2):**
-5. ✅ Geospatial features (geocoding, maps, radius search) - DONE (Sessions 3+4: backend + frontend)
+5. ✅ Geospatial features (geocoding, maps, radius search) - DONE (Sessions 3+4+5: backend + frontend + bugfixes)
 6. AI integration (Smart Tool Helper)
 
 **Deployment (TIER 3):**
@@ -453,7 +454,7 @@ These small features add professional polish with minimal effort:
 - **Two-step return process** for better accountability (borrower initiates, owner confirms)
 - **3-page frontend** for clearer mental model
 - **Integer IDs** instead of UUIDs for v1 simplicity
-- **SQLite** for local dev (will migrate to PostgreSQL before deployment)
+- **PostgreSQL** via Docker Compose for development (SQLite still works for quick local testing)
 
 ---
 
@@ -571,13 +572,34 @@ When discussing this project, emphasize:
     - Fixed `requirements.txt` encoding (was UTF-16, now clean UTF-8)
     - Added missing deps: httpx, python-jose, email-validator
 
+- **Session 5 (Jan 30, 2025)**: Map bugfixes + Docker/PostgreSQL fully working
+  - **Map bugfixes**:
+    - Map now always displays (even with no tools), centered on Helsinki by default
+    - Default zoom changed from country-level (4) to city-level (12)
+    - Removed conditional that hid map when `filteredTools` was empty
+  - **Geocoding auth fix**:
+    - Removed auth requirement from `/geo/geocode` endpoint (no user context needed)
+    - Changed `/geo/tools/near` to use `get_optional_current_user` (won't 401 without token)
+  - **Backend lat/lng persistence fix**:
+    - Added `lat` and `lng` fields to `ToolCreate` and `ToolUpdate` schemas
+    - Updated `create_tool` and `update_tool` endpoints to save lat/lng from payload
+    - Previously frontend sent lat/lng but backend silently ignored them
+  - **Docker + PostgreSQL fully working**:
+    - Fixed `requirements.txt` encoding (UTF-16 → UTF-8, again)
+    - Fixed `DATABASE_URL` dialect: `postgresql+psycopg://` (psycopg v3, not psycopg2)
+    - Remapped Docker PostgreSQL host port to 5433 (5432 already in use by local PostgreSQL)
+    - Fixed migration PostgreSQL compatibility:
+      - Boolean `server_default=sa.text("1")` → `sa.text("true")`
+      - Added `RETURN_PENDING` and `RETURNED` to enum in borrow_requests migration
+    - All 7 migrations run successfully on PostgreSQL
+    - Verified: health, dev login, geocoding, tool creation with lat/lng all working
+
 - **Next Steps**:
-  1. **Update backend config** to support DATABASE_URL for PostgreSQL
-  2. **Test Docker setup** - `docker-compose up` and verify PostgreSQL works
-  3. **Image uploads** - S3 integration for tool photos
-  4. **Lambda functions** - image processing, overdue reminders
-  5. **AI integration** - Smart Tool Helper (Vercel AI SDK)
-  6. **Google OAuth setup** (optional - dev login works)
+  1. **Image uploads** - S3 integration for tool photos
+  2. **Lambda functions** - image processing, overdue reminders
+  3. **AI integration** - Smart Tool Helper (Vercel AI SDK)
+  4. **Google OAuth setup** (optional - dev login works)
+  5. **AWS CDK infrastructure** - deploy to production
 
 ---
 
