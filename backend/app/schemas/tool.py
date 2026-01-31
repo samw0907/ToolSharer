@@ -6,7 +6,6 @@ class ToolBase(BaseModel):
     name: str
     description: str | None = None
     address: str | None = None  # Renamed from location
-    owner_id: int
     is_available: bool = True
 
 
@@ -25,6 +24,7 @@ class ToolUpdate(BaseModel):
 
 class ToolRead(ToolBase):
     id: int
+    owner_id: int
     # Geocoded coordinates
     lat: float | None = None
     lng: float | None = None

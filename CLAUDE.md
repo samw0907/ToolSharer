@@ -242,7 +242,7 @@ Not full microservices (too complex for scope), but service-oriented with server
 - `GET /tools` - List all tools with optional current_user_id filter
 - `GET /tools/{tool_id}` - Get tool details (TODO)
 - `GET /tools/owner/{owner_id}` - List user's tools with borrow status
-- `POST /tools` - Create a tool
+- `POST /tools` - Create a tool (auth required, owner set from JWT)
 - `PUT /tools/{tool_id}` - Update tool (name, description, location) ✨ NEW
 - `PATCH /tools/{tool_id}/availability` - Toggle availability
 - `DELETE /tools/{tool_id}` - Delete tool (if no borrow requests exist)
@@ -594,9 +594,13 @@ When discussing this project, emphasize:
     - All 7 migrations run successfully on PostgreSQL
     - Verified: health, dev login, geocoding, tool creation with lat/lng all working
 
+- **Session 6 (Jan 31, 2025)**: Auth cleanup + tool image plan
+  - **Create tool now uses authenticated user**: Removed `owner_id` from `ToolCreate` schema and CreateToolForm. Backend `POST /tools` uses `get_current_user` dependency to set owner from JWT token. No more manual Owner ID input.
+  - **Tool images approach decided**: Using pre-made curated icon library (Option B) instead of user uploads to avoid content moderation issues. Icons stored in S3, Lambda processes them for thumbnails — demonstrates full S3 + Lambda pipeline without moderation risk.
+
 - **Next Steps**:
-  1. **Image uploads** - S3 integration for tool photos
-  2. **Lambda functions** - image processing, overdue reminders
+  1. **Tool image icons** - Curated icon set in S3, icon picker UI, Lambda thumbnail generation
+  2. **Lambda functions** - image processing (linked to icons), overdue reminders
   3. **AI integration** - Smart Tool Helper (Vercel AI SDK)
   4. **Google OAuth setup** (optional - dev login works)
   5. **AWS CDK infrastructure** - deploy to production

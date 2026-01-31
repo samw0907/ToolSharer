@@ -23,7 +23,6 @@ export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
   const [address, setAddress] = useState("");
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
-  const [ownerId, setOwnerId] = useState("1");
   const [isAvailable, setIsAvailable] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +66,6 @@ export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
         address,
         lat,
         lng,
-        owner_id: Number(ownerId),
         is_available: isAvailable,
       };
 
@@ -167,20 +165,6 @@ export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
             {geocodeError}
           </small>
         )}
-      </div>
-
-      <div style={{ marginBottom: "0.5rem" }}>
-        <label>
-          Owner ID
-          <br />
-          <input
-            type="number"
-            value={ownerId}
-            onChange={(e) => setOwnerId(e.target.value)}
-            min={1}
-            required
-          />
-        </label>
       </div>
 
       <div style={{ marginBottom: "0.5rem" }}>

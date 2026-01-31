@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
+from app.core.auth import get_current_user
 from app.db.session import get_db
 from app.models.borrow_request import BorrowRequest, RequestStatus
 from app.models.tool import Tool
@@ -96,18 +97,18 @@ def list_tools_for_owner(owner_id: int, db: Session = Depends(get_db)):
     return tools
 
 @router.post("/", response_model=ToolRead, status_code=201)
-def create_tool(payload: ToolCreate, db: Session = Depends(get_db)):
-    owner = db.query(User).filter(User.id == payload.owner_id).first()
-    if not owner:
-        raise HTTPException(status_code=400, detail="Owner not found")
-
+def create_tool(
+    payload: ToolCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     tool = Tool(
         name=payload.name,
         description=payload.description,
         address=payload.address,
         lat=payload.lat,
         lng=payload.lng,
-        owner_id=payload.owner_id,
+        owner_id=current_user.id,
         is_available=payload.is_available,
     )
 
