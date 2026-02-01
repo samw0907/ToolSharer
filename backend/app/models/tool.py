@@ -17,6 +17,8 @@ class Tool(Base):
     lat = Column(Float, nullable=True)  # Geocoded latitude
     lng = Column(Float, nullable=True)  # Geocoded longitude
 
+    icon_key = Column(String, nullable=True)  # Key for curated icon (e.g. "drill", "hammer")
+
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     is_available = Column(Boolean, nullable=False, default=True)
 

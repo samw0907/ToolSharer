@@ -12,6 +12,7 @@ class ToolBase(BaseModel):
 class ToolCreate(ToolBase):
     lat: float | None = None
     lng: float | None = None
+    icon_key: str | None = None
 
 
 class ToolUpdate(BaseModel):
@@ -20,6 +21,7 @@ class ToolUpdate(BaseModel):
     address: str | None = None  # Renamed from location
     lat: float | None = None
     lng: float | None = None
+    icon_key: str | None = None
 
 
 class ToolRead(ToolBase):
@@ -28,6 +30,8 @@ class ToolRead(ToolBase):
     # Geocoded coordinates
     lat: float | None = None
     lng: float | None = None
+    # Curated icon key
+    icon_key: str | None = None
 
     has_pending_request: bool = False
     is_borrowing: bool = False

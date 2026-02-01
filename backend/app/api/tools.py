@@ -108,6 +108,7 @@ def create_tool(
         address=payload.address,
         lat=payload.lat,
         lng=payload.lng,
+        icon_key=payload.icon_key,
         owner_id=current_user.id,
         is_available=payload.is_available,
     )
@@ -134,6 +135,8 @@ def update_tool(tool_id: int, payload: ToolUpdate, db: Session = Depends(get_db)
         tool.lat = payload.lat
     if payload.lng is not None:
         tool.lng = payload.lng
+    if payload.icon_key is not None:
+        tool.icon_key = payload.icon_key
 
     db.commit()
     db.refresh(tool)
