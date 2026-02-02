@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#4a5568" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Left handle -->
+  <path d="M20 58 L26 34"/>
+  <rect x="16" y="54" width="8" height="4" rx="2"/>
+  <!-- Right handle -->
+  <path d="M44 58 L38 34"/>
+  <rect x="40" y="54" width="8" height="4" rx="2"/>
+  <!-- Pivot -->
+  <circle cx="32" cy="30" r="3"/>
+  <!-- Left jaw -->
+  <path d="M26 34 L24 20 Q28 12 32 14"/>
+  <!-- Right jaw -->
+  <path d="M38 34 L40 20 Q36 12 32 14"/>
+</svg>

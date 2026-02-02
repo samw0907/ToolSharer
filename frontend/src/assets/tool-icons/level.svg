@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#4a5568" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Body -->
+  <rect x="4" y="24" width="56" height="16" rx="3"/>
+  <!-- Center vial -->
+  <rect x="24" y="28" width="16" height="8" rx="4"/>
+  <circle cx="32" cy="32" r="2"/>
+  <!-- Left vial -->
+  <rect x="8" y="29" width="10" height="6" rx="3"/>
+  <!-- Right vial -->
+  <rect x="46" y="29" width="10" height="6" rx="3"/>
+</svg>

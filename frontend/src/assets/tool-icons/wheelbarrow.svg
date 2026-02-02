@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#4a5568" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Tray -->
+  <path d="M12 20 L8 38 L38 38 L44 20 Z"/>
+  <!-- Wheel -->
+  <circle cx="10" cy="46" r="6"/>
+  <!-- Leg/axle -->
+  <line x1="10" y1="38" x2="10" y2="40"/>
+  <!-- Handles -->
+  <line x1="38" y1="30" x2="58" y2="24"/>
+  <line x1="38" y1="38" x2="58" y2="32"/>
+  <!-- Handle grips -->
+  <line x1="56" y1="22" x2="60" y2="26"/>
+  <line x1="56" y1="30" x2="60" y2="34"/>
+</svg>

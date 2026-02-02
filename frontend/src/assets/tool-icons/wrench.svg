@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#4a5568" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Shaft -->
+  <rect x="24" y="14" width="8" height="36" rx="2"/>
+  <!-- Top jaw -->
+  <path d="M20 14 L20 6 Q28 2 36 6 L36 14"/>
+  <!-- Bottom jaw open end -->
+  <path d="M24 50 L20 58"/>
+  <path d="M32 50 L36 58"/>
+</svg>
