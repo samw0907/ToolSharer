@@ -1,6 +1,7 @@
 // src/components/CreateToolForm.tsx
 import { FormEvent, useState } from "react";
 import { apiPost } from "../lib/api";
+import IconPicker from "./IconPicker";
 
 interface Tool {
   id: number;
@@ -9,6 +10,7 @@ interface Tool {
   address: string;
   lat?: number | null;
   lng?: number | null;
+  icon_key?: string | null;
   owner_id: number;
   is_available: boolean;
 }
@@ -20,6 +22,7 @@ interface CreateToolFormProps {
 export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [iconKey, setIconKey] = useState<string | null>(null);
   const [address, setAddress] = useState("");
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
@@ -66,6 +69,7 @@ export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
         address,
         lat,
         lng,
+        icon_key: iconKey,
         is_available: isAvailable,
       };
 
@@ -75,6 +79,7 @@ export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
       // reset form
       setName("");
       setDescription("");
+      setIconKey(null);
       setAddress("");
       setLat(null);
       setLng(null);
@@ -126,6 +131,8 @@ export default function CreateToolForm({ onCreated }: CreateToolFormProps) {
           />
         </label>
       </div>
+
+      <IconPicker value={iconKey} onChange={setIconKey} />
 
       <div style={{ marginBottom: "0.5rem" }}>
         <label>

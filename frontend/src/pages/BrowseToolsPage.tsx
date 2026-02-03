@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { apiGet } from "../lib/api";
 import CreateBorrowRequestForm from "../components/CreateBorrowRequestForm";
 import ToolsMap from "../components/ToolsMap";
+import { getToolIcon } from "../assets/tool-icons";
 
 interface Tool {
   id: number;
@@ -12,6 +13,7 @@ interface Tool {
   address?: string;
   lat?: number | null;
   lng?: number | null;
+  icon_key?: string | null;
   owner_id: number;
   is_available: boolean;
   has_pending_request?: boolean;
@@ -374,6 +376,8 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
             else if (hasPending) buttonLabel = "Request pending";
             else if (isFormOpen) buttonLabel = "Hide request form";
 
+            const toolIcon = t.icon_key ? getToolIcon(t.icon_key) : null;
+
             return (
               <li
                 key={t.id}
@@ -383,7 +387,23 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
                   borderBottom: "1px solid #ddd",
                 }}
               >
-                <strong>{t.name}</strong> — {t.description}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+                  {toolIcon && (
+                    <img
+                      src={toolIcon.src}
+                      alt={toolIcon.label}
+                      style={{
+                        width: 48,
+                        height: 48,
+                        padding: "6px",
+                        backgroundColor: "#f5f5f5",
+                        borderRadius: "8px",
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                  <div style={{ flex: 1 }}>
+                    <strong>{t.name}</strong> — {t.description}
                 <br />
                 <span>{t.location}</span>
                 <br />
@@ -444,6 +464,8 @@ export default function BrowseToolsPage({ currentUserId, reloadToken }: BrowseTo
                     onCancel={() => setActiveRequestToolId(null)}
                   />
                 )}
+                  </div>
+                </div>
               </li>
             );
           })}

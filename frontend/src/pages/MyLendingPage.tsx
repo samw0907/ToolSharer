@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { apiGet, apiPatch, apiDelete } from "../lib/api";
 import CreateToolForm from "../components/CreateToolForm";
 import EditToolForm from "../components/EditToolForm";
+import { getToolIcon } from "../assets/tool-icons";
 
 interface Tool {
   id: number;
   name: string;
   description: string;
   location: string;
+  icon_key?: string | null;
   owner_id: number;
   is_available: boolean;
   is_borrowed?: boolean;
@@ -311,11 +313,31 @@ export default function MyLendingPage({ ownerId, onRequestsChanged }: MyLendingP
                 const isBorrowed = Boolean(t.is_borrowed);
                 const isEditing = editingToolId === t.id;
 
+                const toolIcon = t.icon_key ? getToolIcon(t.icon_key) : null;
+
                 return (
                   <tr key={t.id}>
                     <td style={{ borderBottom: "1px solid #eee", padding: "0.5rem" }}>
-                      <strong>{t.name}</strong>
-                      <div style={{ color: "#aaa", fontSize: "0.9rem" }}>{t.description}</div>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+                        {toolIcon && (
+                          <img
+                            src={toolIcon.src}
+                            alt={toolIcon.label}
+                            style={{
+                              width: 36,
+                              height: 36,
+                              padding: "4px",
+                              backgroundColor: "#f5f5f5",
+                              borderRadius: "6px",
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
+                        <div>
+                          <strong>{t.name}</strong>
+                          <div style={{ color: "#aaa", fontSize: "0.9rem" }}>{t.description}</div>
+                        </div>
+                      </div>
                       {isEditing && (
                         <EditToolForm
                           tool={t}

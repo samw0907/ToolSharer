@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import { apiPost, apiPut } from "../lib/api";
+import IconPicker from "./IconPicker";
 
 interface Tool {
   id: number;
@@ -8,6 +9,7 @@ interface Tool {
   address: string;
   lat?: number | null;
   lng?: number | null;
+  icon_key?: string | null;
   owner_id: number;
   is_available: boolean;
 }
@@ -21,6 +23,7 @@ interface EditToolFormProps {
 export default function EditToolForm({ tool, onUpdated, onCancel }: EditToolFormProps) {
   const [name, setName] = useState(tool.name);
   const [description, setDescription] = useState(tool.description);
+  const [iconKey, setIconKey] = useState<string | null>(tool.icon_key ?? null);
   const [address, setAddress] = useState(tool.address || "");
   const [lat, setLat] = useState<number | null>(tool.lat ?? null);
   const [lng, setLng] = useState<number | null>(tool.lng ?? null);
@@ -66,6 +69,7 @@ export default function EditToolForm({ tool, onUpdated, onCancel }: EditToolForm
         address,
         lat,
         lng,
+        icon_key: iconKey,
       };
 
       const updated = await apiPut<Tool>(`/tools/${tool.id}`, payload);
@@ -118,6 +122,8 @@ export default function EditToolForm({ tool, onUpdated, onCancel }: EditToolForm
           />
         </label>
       </div>
+
+      <IconPicker value={iconKey} onChange={setIconKey} />
 
       <div style={{ marginBottom: "0.5rem" }}>
         <label>
