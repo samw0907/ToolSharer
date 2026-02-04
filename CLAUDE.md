@@ -365,13 +365,13 @@ Not full microservices (too complex for scope), but service-oriented with server
 
 ## Current Project Status
 
-**Progress: ~55% Complete** (Updated: Jan 30, 2025)
+**Progress: ~60% Complete** (Updated: Feb 4, 2025)
 
 ### ✅ Completed (Session 1 - UX Overhaul)
 
 **Backend:**
 - FastAPI app structure with routers, models, schemas, services
-- SQLAlchemy ORM + Alembic migrations (7 migrations total)
+- SQLAlchemy ORM + Alembic migrations (8 migrations total)
 - 27 API endpoints for users, tools, and borrow requests
 - BorrowRequest model with approval workflow (PENDING → APPROVED → RETURN_PENDING → RETURNED)
 - Two-step return endpoints (initiate-return, confirm-return)
@@ -594,16 +594,39 @@ When discussing this project, emphasize:
     - All 7 migrations run successfully on PostgreSQL
     - Verified: health, dev login, geocoding, tool creation with lat/lng all working
 
-- **Session 6 (Jan 31, 2025)**: Auth cleanup + tool image plan
+- **Session 6 (Feb 4, 2025)**: Auth cleanup + curated tool icons
   - **Create tool now uses authenticated user**: Removed `owner_id` from `ToolCreate` schema and CreateToolForm. Backend `POST /tools` uses `get_current_user` dependency to set owner from JWT token. No more manual Owner ID input.
   - **Tool images approach decided**: Using pre-made curated icon library (Option B) instead of user uploads to avoid content moderation issues. Icons stored in S3, Lambda processes them for thumbnails — demonstrates full S3 + Lambda pipeline without moderation risk.
+  - **Added `icon_key` field to tools**:
+    - New column in `tools` table (migration: `20250131_add_icon_key_to_tools.py`)
+    - Added to `ToolCreate`, `ToolUpdate`, `ToolRead` schemas
+    - `create_tool` and `update_tool` endpoints handle `icon_key`
+  - **Created 16 curated SVG icons** in `frontend/src/assets/tool-icons/`:
+    - Power Tools: drill, sander, lawnmower
+    - Hand Tools: hammer, saw, wrench, screwdriver, pliers, axe
+    - Measuring: tape_measure, level
+    - Garden: shovel, rake, wheelbarrow
+    - Painting: paint_roller
+    - Large Equipment: ladder
+    - Manifest at `index.ts` with `TOOL_ICONS` array, `getToolIcon()`, `getIconCategories()`
+  - **Created IconPicker component** (`frontend/src/components/IconPicker.tsx`):
+    - Visual grid grouped by category
+    - Selection highlighting and preview
+    - Clear button to remove selection
+  - **Integrated IconPicker into forms**:
+    - `CreateToolForm.tsx` - pick icon when adding tool
+    - `EditToolForm.tsx` - change icon when editing
+  - **Display icons on tool cards**:
+    - `BrowseToolsPage.tsx` - shows icon thumbnail (48x48) next to tool name
+    - `MyLendingPage.tsx` - shows icon in tools table (36x36)
 
-- **Next Steps**:
-  1. **Tool image icons** - Curated icon set in S3, icon picker UI, Lambda thumbnail generation
-  2. **Lambda functions** - image processing (linked to icons), overdue reminders
-  3. **AI integration** - Smart Tool Helper (Vercel AI SDK)
-  4. **Google OAuth setup** (optional - dev login works)
-  5. **AWS CDK infrastructure** - deploy to production
+- **Next Steps** (Tool Icons → S3 → Lambda pipeline):
+  1. **S3 bucket setup** - Add LocalStack to docker-compose for local S3, add boto3, upload curated icons to S3
+  2. **Lambda thumbnail generation** - S3-triggered Lambda copies icon to tool-specific path, generates thumbnail
+  3. **Wire S3 URLs to frontend** - Tool cards use S3 thumbnail URLs with fallback to static icons
+  4. **Lambda overdue reminders** - EventBridge-scheduled, SES emails
+  5. **AI integration** - Smart Tool Helper (Vercel AI SDK)
+  6. **AWS CDK infrastructure** - deploy to production
 
 ---
 
