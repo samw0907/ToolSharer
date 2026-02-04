@@ -1,7 +1,7 @@
 # app/api/routes.py
 from fastapi import APIRouter
 
-from app.api import auth, users, tools, borrow_requests, geocoding
+from app.api import auth, users, tools, borrow_requests, geocoding, icons
 
 router = APIRouter()
 
@@ -25,3 +25,6 @@ router.include_router(borrow_requests.router)
 
 # Geocoding
 router.include_router(geocoding.router)
+
+# Icons (S3)
+router.include_router(icons.router)
