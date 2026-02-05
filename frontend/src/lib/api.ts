@@ -1,6 +1,9 @@
 // src/lib/api.ts
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
+// S3 icon URL base (LocalStack for dev, real S3 for production)
+export const S3_ICON_BASE_URL = "http://localhost:4566/toolsharer-icons/icons";
+
 const TOKEN_KEY = "toolsharer_token";
 
 export function getToken(): string | null {
@@ -92,4 +95,24 @@ export async function apiDelete(path: string): Promise<void> {
     const detail = await readErrorDetail(res);
     throw new Error(detail ?? `DELETE ${path} failed: ${res.status}`);
   }
+}
+
+// --- Icons API ---
+
+export interface IconInfo {
+  key: string;
+  url: string;
+}
+
+export interface IconsResponse {
+  icons: IconInfo[];
+}
+
+export async function fetchIcons(): Promise<IconInfo[]> {
+  const response = await apiGet<IconsResponse>("/icons");
+  return response.icons;
+}
+
+export function getS3IconUrl(iconKey: string): string {
+  return `${S3_ICON_BASE_URL}/${iconKey}.svg`;
 }
