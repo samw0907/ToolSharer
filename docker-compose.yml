@@ -24,13 +24,15 @@ services:
     ports:
       - "4566:4566"  # LocalStack Gateway
     environment:
-      - SERVICES=s3
+      - SERVICES=s3,lambda
       - DEBUG=1
       - PERSISTENCE=1
       - AWS_DEFAULT_REGION=eu-north-1
+      - LAMBDA_EXECUTOR=local
     volumes:
       - localstack_data:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./backend/lambdas:/lambdas
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 10s
