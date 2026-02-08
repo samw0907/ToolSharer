@@ -39,6 +39,10 @@ class Settings(BaseSettings):
     S3_PUBLIC_ENDPOINT_URL: Optional[str] = None  # For frontend access: http://localhost:4566
     S3_BUCKET_NAME: str = "toolsharer-icons"
 
+    # SES settings
+    SES_ENDPOINT_URL: Optional[str] = None  # For LocalStack: http://localstack:4566
+    SES_SENDER_EMAIL: str = "noreply@toolsharer.local"
+
     # Cognito placeholders (to fill later)
     COGNITO_USER_POOL_ID: Optional[str] = None
     COGNITO_CLIENT_ID: Optional[str] = None

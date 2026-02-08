@@ -365,7 +365,7 @@ Not full microservices (too complex for scope), but service-oriented with server
 
 ## Current Project Status
 
-**Progress: ~65% Complete** (Updated: Feb 4, 2025)
+**Progress: ~70% Complete** (Updated: Feb 6, 2025)
 
 ### ✅ Completed (Session 1 - UX Overhaul)
 
@@ -438,15 +438,18 @@ These small features add professional polish with minimal effort:
 1. ✅ OAuth2 with Google (remove user selector) - DONE (Session 2)
 2. ✅ Database schema updates (add missing fields for geocoding) - DONE (Session 3)
 3. ✅ Docker + PostgreSQL setup - DONE (Session 5: fully working, all migrations pass on PostgreSQL)
-4. Lambda functions (image processing, overdue reminders)
+4. ✅ S3 + LocalStack integration - DONE (Session 7: icons stored in S3, frontend uses S3 URLs with fallback)
+5. 🚧 Lambda functions:
+   - ✅ Thumbnail generation (S3-triggered) - DONE (Session 7)
+   - ⏳ Overdue reminders (EventBridge-scheduled, SES)
 
 **Secondary Priority (TIER 2):**
-5. ✅ Geospatial features (geocoding, maps, radius search) - DONE (Sessions 3+4+5: backend + frontend + bugfixes)
-6. AI integration (Smart Tool Helper)
+6. ✅ Geospatial features (geocoding, maps, radius search) - DONE (Sessions 3+4+5: backend + frontend + bugfixes)
+7. ⏳ AI integration (Smart Tool Helper)
 
 **Deployment (TIER 3):**
-7. AWS CDK infrastructure
-8. Deploy to production
+8. AWS CDK infrastructure
+9. Deploy to production
 
 ### 📝 Design Decisions Made
 
@@ -455,6 +458,9 @@ These small features add professional polish with minimal effort:
 - **3-page frontend** for clearer mental model
 - **Integer IDs** instead of UUIDs for v1 simplicity
 - **PostgreSQL** via Docker Compose for development (SQLite still works for quick local testing)
+- **Curated icon library** instead of user uploads to avoid content moderation issues
+- **LocalStack** for local AWS emulation (S3, Lambda) - same code works with real AWS
+- **S3 URLs with fallback** - Frontend tries S3 first, falls back to bundled static icons
 
 ---
 
@@ -649,9 +655,41 @@ When discussing this project, emphasize:
     - `/api/icons` returns URLs accessible from browser
     - Icons accessible at `http://localhost:4566/toolsharer-icons/icons/{key}.svg`
 
+- **Session 7 continued (Feb 5-6, 2025)**: Frontend S3 wiring + Lambda thumbnail generation
+  - **Frontend S3 icon integration**:
+    - Added `S3_ICON_BASE_URL` constant to `frontend/src/lib/api.ts`
+    - Added `getS3IconUrl()` helper and `fetchIcons()` API function
+    - Created `ToolIcon` component (`frontend/src/components/ToolIcon.tsx`):
+      - Tries to load icon from S3 first
+      - Falls back to bundled static icons if S3 fails
+      - Configurable size and style props
+    - Updated `BrowseToolsPage.tsx` to use `<ToolIcon>` component
+    - Updated `MyLendingPage.tsx` to use `<ToolIcon>` component
+  - **Lambda thumbnail generation pipeline**:
+    - Created Lambda function (`backend/lambdas/thumbnail_generator/handler.py`):
+      - Processes S3 ObjectCreated events on `icons/` prefix
+      - Reads uploaded icons and creates copies in `thumbnails/` prefix
+      - Demonstrates S3 → Lambda event-driven pattern
+    - Added Lambda service to LocalStack (`docker-compose.yml`):
+      - `SERVICES=s3,lambda`
+      - `LAMBDA_EXECUTOR=local`
+      - Mounted `/lambdas` volume for Lambda code
+    - Created deployment script (`backend/scripts/deploy_lambda.py`):
+      - Deploys Lambda to LocalStack
+      - Configures S3 bucket notification trigger
+      - Tests Lambda with manual invocation
+    - Created invocation script (`backend/scripts/invoke_thumbnail_lambda.py`):
+      - Manually invokes Lambda for all icons in S3
+      - Lists generated thumbnails
+    - **Verified working**:
+      - Lambda deployed to LocalStack
+      - S3 trigger configured for `icons/` prefix
+      - All 16 thumbnails generated in `thumbnails/` prefix
+      - Thumbnails accessible at `http://localhost:4566/toolsharer-icons/thumbnails/{key}.svg`
+
 - **Next Steps**:
-  1. **Wire S3 URLs to frontend** - Tool cards use S3 icon URLs with fallback to static icons
-  2. **Lambda thumbnail generation** - S3-triggered Lambda for image processing pipeline demo
+  1. ~~Wire S3 URLs to frontend~~ ✅
+  2. ~~Lambda thumbnail generation~~ ✅
   3. **Lambda overdue reminders** - EventBridge-scheduled, SES emails
   4. **AI integration** - Smart Tool Helper (Vercel AI SDK)
   5. **AWS CDK infrastructure** - deploy to production
